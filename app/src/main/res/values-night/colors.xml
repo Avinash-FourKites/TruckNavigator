@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="divider_color">#1FFFFFFF</color>
+    <color name="active_icon_color">@android:color/white</color>
+    <color name="cards_and_dialogs_color">#424242</color>
+</resources>

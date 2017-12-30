@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="action_bar_driving_bottom_color">#130003</color>
+    <color name="lite_grey">#bbbbbb</color>
+    <color name="carrier_link_blue">#0099CC</color>
+
+    <color name="colorPrimary">#58595b</color>
+    <color name="colorPrimaryDark">#58595b</color>
+    <color name="colorAccent">#58595b</color>
+
+    <color name="icon_text">#FFD23F</color>
+
+    <color name="material_light_primary_text">#DE000000</color>
+    <color name="material_light_hint_text">#61000000</color>
+    <color name="material_light_active_icon">#8A000000</color>
+    <color name="material_ripple_light">#1F000000</color>
+    <color name="divider_color">#1F000000</color>
+    <color name="active_icon_color">#8A000000</color>
+    <color name="cards_and_dialogs_color">@android:color/white</color>
+    <color name="quantum_grey_600">#757575</color>
+    <color name="fourkites_green">#019E4C</color>
+    <color name="fourkites_yellow">#cac337</color>
+    <color name="fourkites_red">#DB5749</color>
+</resources>
