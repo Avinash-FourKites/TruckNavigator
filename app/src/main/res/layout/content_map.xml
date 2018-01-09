@@ -5,16 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.fourkites.trucknavigator.ScrollingActivity"
+    tools:context="com.fourkites.trucknavigator.NavigationActivity"
     tools:showIn="@layout/activity_main">
 
     <RelativeLayout
         android:id="@+id/navigationBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="5dp"
-        android:background="@color/colorPrimaryDark"
         android:layout_alignParentBottom="true"
+        android:background="@color/colorPrimaryDark"
+        android:padding="5dp"
         android:visibility="gone">
 
         <LinearLayout
@@ -85,21 +85,23 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:orientation="vertical">
+
             <ImageView
                 android:id="@+id/manuverIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:layout_margin="5dp"/>
+                android:layout_margin="5dp" />
+
             <TextView
-                android:layout_margin="2dp"
-                android:layout_below="@+id/manuverIcon"
                 android:id="@+id/distanceOfManeuver"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_below="@+id/manuverIcon"
+                android:layout_margin="2dp"
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
         </RelativeLayout>
 
@@ -114,13 +116,56 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+
+        <LinearLayout
+            android:id="@+id/routesLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@color/white_smoke"
+            android:visibility="gone">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/colorPrimary">
+
+                <ImageView
+                    android:id="@+id/routesBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:background="@drawable/back"
+                    android:layout_centerVertical="true"
+                    android:backgroundTint="@android:color/white"
+                    android:visibility="visible" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="Routes"
+                    android:textColor="@android:color/white"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
+            </RelativeLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/routesView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true" />
+
+        </LinearLayout>
+
+
         <LinearLayout
             android:id="@+id/controls"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true">
+            android:orientation="vertical">
+
             <ImageView
                 android:id="@+id/currentLocation"
                 android:layout_width="40dp"
@@ -145,8 +190,8 @@
             android:id="@+id/popUpLayout"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:layout_toLeftOf="@+id/controls"
             android:layout_alignParentBottom="true"
+            android:layout_toLeftOf="@+id/controls"
             android:visibility="gone">
 
             <RelativeLayout
@@ -164,7 +209,7 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/mapView"
+                        android:id="@+id/navigationView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="2dp"
@@ -305,8 +350,8 @@
                 android:id="@+id/arrowPointer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
                 android:layout_alignParentLeft="true"
+                android:layout_gravity="bottom"
                 android:background="@drawable/tool_tip_layout" />
         </LinearLayout>
 
@@ -314,18 +359,37 @@
             android:id="@+id/stopNavigation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
             android:layout_margin="15dp"
             android:backgroundTint="@color/fourkites_red"
             android:clickable="true"
             android:visibility="gone"
-            android:layout_alignParentBottom="true"
             app:srcCompat="@drawable/navigation_close" />
 
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/createRoute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="right"
+            android:layout_margin="5dp"
+            android:backgroundTint="@color/carrier_link_blue"
+            android:visibility="gone"
+            app:srcCompat="@drawable/directions" />
 
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/startNavigation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="right"
+            android:layout_margin="5dp"
+            android:backgroundTint="@color/fourkites_green"
+            android:visibility="gone"
+            app:srcCompat="@drawable/start_navigation" />
 
 
     </RelativeLayout>
-
 
 
 </LinearLayout>

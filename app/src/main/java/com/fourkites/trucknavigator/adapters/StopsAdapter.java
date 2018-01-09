@@ -1,37 +1,20 @@
-package com.fourkites.trucknavigator;
+package com.fourkites.trucknavigator.adapters;
 
-/**
- * Created by Avinash on 19/12/17.
- */
-import android.app.Activity;
+
 import android.content.Context;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.here.android.mpa.routing.RouteWaypoint;
-import com.here.android.mpa.search.Address;
-import com.here.android.mpa.search.DiscoveryRequest;
-import com.here.android.mpa.search.DiscoveryResult;
-import com.here.android.mpa.search.DiscoveryResultPage;
-import com.here.android.mpa.search.ErrorCode;
-import com.here.android.mpa.search.GeocodeRequest;
-import com.here.android.mpa.search.Location;
-import com.here.android.mpa.search.Place;
-import com.here.android.mpa.search.PlaceLink;
-import com.here.android.mpa.search.PlaceRequest;
-import com.here.android.mpa.search.ResultListener;
-import com.here.android.mpa.search.SearchRequest;
+import com.fourkites.trucknavigator.NavigationView;
+import com.fourkites.trucknavigator.R;
+import com.fourkites.trucknavigator.pojos.Stop;
+import com.fourkites.trucknavigator.pojos.Suggestion;
+
 import org.jsoup.Jsoup;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,9 +22,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created by Avinash on 04/08/16.
+ * Created by Avinash on 19/12/17.
  */
-
 
 public class StopsAdapter extends RecyclerView.Adapter {
 
@@ -50,13 +32,13 @@ public class StopsAdapter extends RecyclerView.Adapter {
     private final Handler handler = new Handler();
     private Runnable run;
     private ArrayList<Suggestion> suggestions;
-    private SuggestionAdapter adapter;
+   // private SuggestionAdapter adapter;
     private int count;
     private Set<Suggestion> addressSet;
-    private MapView mapView;
+    private NavigationView navigationView;
 
-    public StopsAdapter(MapView mapView,Context context, List<Stop> stops) {
-        this.mapView = mapView;
+    public StopsAdapter(NavigationView navigationView, Context context, List<Stop> stops) {
+        this.navigationView = navigationView;
         this.context = context;
         this.stops = stops;
         suggestions = new ArrayList<>();
@@ -147,7 +129,7 @@ public class StopsAdapter extends RecyclerView.Adapter {
                 stop.setAddress(suggestions.get(position).getName());
                 stop.setGeoCoordinate(suggestions.get(position).getGeoCoordinate());
                 stop.setRouteWaypoint(suggestions.get(position).getRouteWaypoint());
-                mapView.addMarkerToMap(stop, false);
+                navigationView.addMarkerToMap(stop, false);
                 notifyDataSetChanged();
                 stopViewHolder.address.clearFocus();
             }
@@ -173,7 +155,7 @@ public class StopsAdapter extends RecyclerView.Adapter {
                 stops.remove(holder.getAdapterPosition());
                 //Log.i("Stops size after", stops.size()+"");
                 notifyDataSetChanged();
-                mapView.refreshRoute();
+                navigationView.refreshRoute();
             }
         });
 
@@ -181,7 +163,7 @@ public class StopsAdapter extends RecyclerView.Adapter {
             @Override
             public void onClick(View v) {
                 Stop stop = stops.get(holder.getAdapterPosition());
-                mapView.editSuggestion(stop,holder.getAdapterPosition());
+                navigationView.editSuggestion(stop,holder.getAdapterPosition());
             }
         });
     }

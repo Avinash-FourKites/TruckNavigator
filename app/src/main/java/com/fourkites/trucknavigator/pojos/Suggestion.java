@@ -1,4 +1,4 @@
-package com.fourkites.trucknavigator;
+package com.fourkites.trucknavigator.pojos;
 
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.routing.RouteWaypoint;

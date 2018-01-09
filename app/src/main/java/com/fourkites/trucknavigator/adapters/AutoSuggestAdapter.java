@@ -1,4 +1,4 @@
-package com.fourkites.trucknavigator;
+package com.fourkites.trucknavigator.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -9,6 +9,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.fourkites.trucknavigator.NavigationView;
+import com.fourkites.trucknavigator.R;
+import com.fourkites.trucknavigator.pojos.Result;
+import com.fourkites.trucknavigator.pojos.Stop;
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.routing.RouteWaypoint;
 
@@ -23,16 +27,16 @@ public class AutoSuggestAdapter extends RecyclerView.Adapter {
     private final Context context;
     private final int layoutResourceId;
     private final List<Result> data;
-    private MapView mapView;
+    private NavigationView navigationView;
     private Stop stop;
     private int stopPosition;
 
 
-    public AutoSuggestAdapter(MapView mapView, Context context, int layoutResourceId, List<Result> data, Stop stop, int stopPosition) {
+    public AutoSuggestAdapter(NavigationView navigationView, Context context, int layoutResourceId, List<Result> data, Stop stop, int stopPosition) {
         this.layoutResourceId = layoutResourceId;
         this.context = context;
         this.data = data;
-        this.mapView = mapView;
+        this.navigationView = navigationView;
         this.stop = stop;
         this.stopPosition = stopPosition;
     }
@@ -92,7 +96,7 @@ public class AutoSuggestAdapter extends RecyclerView.Adapter {
                 GeoCoordinate geoCoordinate = new GeoCoordinate(suggestion.getPosition().get(0), suggestion.getPosition().get(1));
                 stop.setGeoCoordinate(geoCoordinate);
                 stop.setRouteWaypoint(new RouteWaypoint(geoCoordinate));
-                mapView.addOrUpdateWaypoint(stop, stopPosition);
+                navigationView.addOrUpdateWaypoint(stop, stopPosition);
             }
         });
 

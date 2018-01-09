@@ -1,9 +1,13 @@
 
-package com.fourkites.trucknavigator;
+package com.fourkites.trucknavigator.pojos;
 
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+/**
+ * Created by Avinash on 09/01/18.
+ */
 
 public class SearchResults {
 
