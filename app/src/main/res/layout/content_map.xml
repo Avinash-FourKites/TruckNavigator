@@ -108,6 +108,7 @@
     </RelativeLayout>
 
     <RelativeLayout
+        android:id="@+id/parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -116,13 +117,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-
         <LinearLayout
             android:id="@+id/routesLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
             android:background="@color/white_smoke"
+            android:orientation="vertical"
             android:visibility="gone">
 
             <RelativeLayout
@@ -134,9 +134,9 @@
                     android:id="@+id/routesBack"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
                     android:layout_gravity="center_vertical"
                     android:background="@drawable/back"
-                    android:layout_centerVertical="true"
                     android:backgroundTint="@android:color/white"
                     android:visibility="visible" />
 
@@ -145,45 +145,62 @@
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
                     android:text="Routes"
-                    android:textColor="@android:color/white"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
+                    android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                    android:textColor="@android:color/white" />
             </RelativeLayout>
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/routesView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_alignParentEnd="true" />
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true" />
 
         </LinearLayout>
 
-
         <LinearLayout
-            android:id="@+id/controls"
-            android:layout_width="wrap_content"
+            android:id="@+id/routeDetailsLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:orientation="vertical">
+            android:background="@color/colorPrimary"
+            android:gravity="center_vertical"
+            android:padding="5dp"
+            android:visibility="gone">
 
-            <ImageView
-                android:id="@+id/currentLocation"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_above="@+id/navigationBar"
-                android:layout_marginBottom="5dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginRight="5dp"
-                android:background="@drawable/current_location" />
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/startNavigation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="5dp"
+                app:backgroundTint="@color/fourkites_green"
+                android:visibility="visible"
+                app:srcCompat="@drawable/start_navigation" />
 
-            <ImageView
-                android:id="@+id/schemeSwitch"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginBottom="5dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginRight="5dp"
-                android:background="@drawable/map_layers_icon" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+
+                android:layout_centerInParent="true">
+                <TextView
+                    android:id="@+id/selectedRouteEta"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:text="Estimated Time : "/>
+                <TextView
+                    android:id="@+id/selectedRouteDistance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:text="Total Distance : "/>
+            </LinearLayout>
+
+
         </LinearLayout>
 
         <LinearLayout
@@ -355,13 +372,42 @@
                 android:background="@drawable/tool_tip_layout" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/controls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_above="@+id/routeDetailsLayout"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/currentLocation"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_above="@+id/navigationBar"
+                android:layout_marginBottom="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginRight="5dp"
+                android:background="@drawable/current_location" />
+
+            <ImageView
+                android:id="@+id/schemeSwitch"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginBottom="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginRight="5dp"
+                android:background="@drawable/map_layers_icon" />
+        </LinearLayout>
+
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/stopNavigation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_margin="15dp"
-            android:backgroundTint="@color/fourkites_red"
+            app:backgroundTint="@color/fourkites_red"
             android:clickable="true"
             android:visibility="gone"
             app:srcCompat="@drawable/navigation_close" />
@@ -373,11 +419,11 @@
             android:layout_alignParentBottom="true"
             android:layout_gravity="right"
             android:layout_margin="5dp"
-            android:backgroundTint="@color/carrier_link_blue"
+            app:backgroundTint="@color/carrier_link_blue"
             android:visibility="gone"
             app:srcCompat="@drawable/directions" />
 
-        <android.support.design.widget.FloatingActionButton
+       <!-- <android.support.design.widget.FloatingActionButton
             android:id="@+id/startNavigation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -386,10 +432,8 @@
             android:layout_margin="5dp"
             android:backgroundTint="@color/fourkites_green"
             android:visibility="gone"
-            app:srcCompat="@drawable/start_navigation" />
-
+            app:srcCompat="@drawable/start_navigation" />-->
 
     </RelativeLayout>
-
 
 </LinearLayout>

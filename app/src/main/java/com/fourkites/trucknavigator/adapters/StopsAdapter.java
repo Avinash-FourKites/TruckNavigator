@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -79,75 +80,6 @@ public class StopsAdapter extends RecyclerView.Adapter {
         else
             stopViewHolder.address.setText("");
 
-        //stopViewHolder.address.setThreshold(3);
-
-       /* stopViewHolder.address.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showKeyboard(context, stopViewHolder.address);
-            }
-        });
-*/
-        /*topViewHolder.address.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (stopViewHolder.address.isFocused()) {
-                    if (!stopViewHolder.address.getText().toString().equals("")) {
-
-                        if (stopViewHolder.address.getText().toString().length() >= 3) {
-                            String text = stopViewHolder.address.getText().toString();
-                            final String txt = text;
-                            handler.removeCallbacks(run);
-
-                            run = new Runnable() {
-                                public void run() {
-                                    //stopViewHolder.loadingCircle.setVisibility(View.VISIBLE);
-                                    suggesstionsRequest(txt.trim(), stopViewHolder);
-                                }
-                            };
-                            handler.postDelayed(run, 0);
-                        }
-                    } else {
-                        stopViewHolder.address.clearFocus();
-                    }
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });*/
-
-       /* stopViewHolder.address.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view, int position, long rowId) {
-                hideKeyboard(context, stopViewHolder.address);
-                stop.setAddress(suggestions.get(position).getName());
-                stop.setGeoCoordinate(suggestions.get(position).getGeoCoordinate());
-                stop.setRouteWaypoint(suggestions.get(position).getRouteWaypoint());
-                navigationView.addMarkerToMap(stop, false);
-                notifyDataSetChanged();
-                stopViewHolder.address.clearFocus();
-            }
-        });*/
-
-      /*  stopViewHolder.address.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean hasFocus) {
-                if (!hasFocus) {
-                    if (view != null) {
-                        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                        if (imm != null)
-                            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    }
-                }
-            }
-        });*/
-
         stopViewHolder.remove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -166,6 +98,15 @@ public class StopsAdapter extends RecyclerView.Adapter {
                 navigationView.editSuggestion(stop,holder.getAdapterPosition());
             }
         });
+
+       /* stopViewHolder.address.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Stop stop = stops.get(holder.getAdapterPosition());
+                navigationView.editSuggestion(stop,holder.getAdapterPosition());
+                return false;
+            }
+        });*/
     }
 
     @Override

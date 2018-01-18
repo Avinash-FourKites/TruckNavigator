@@ -2,21 +2,25 @@ package com.fourkites.trucknavigator;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.fourkites.trucknavigator.pojos.SelectedRoute;
 import com.fourkites.trucknavigator.pojos.Stop;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -32,6 +36,8 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by Avinash on 09/01/18.
@@ -55,10 +61,13 @@ public class NavigationActivity extends AppCompatActivity {
     private boolean controlsState;
     private boolean schemeSwitchState;
     private boolean popUpLayoutState;
+    private GpsInfoReceiver gpsInfoReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
+        gpsInfoReceiver = new GpsInfoReceiver();
 
         setContentView(R.layout.activity_main);
 
@@ -108,18 +117,34 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(gpsInfoReceiver, new IntentFilter("GPS_INFO_UPDATE_ALERT"));
+    }
+
+    @Override
+    public void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(gpsInfoReceiver);
+        super.onPause();
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("waypoints", navigationView.getWaypoints());
-        outState.putParcelable("route", navigationView.getSelectedRoute());
-        outState.putBoolean("directionsState", navigationView.getCreateRoute().getVisibility() == View.VISIBLE);
-        outState.putBoolean("startState", navigationView.getStart().getVisibility() == View.VISIBLE);
-        outState.putBoolean("stopState", navigationView.getStop().getVisibility() == View.VISIBLE);
-        outState.putBoolean("toolbarState", navigationView.getToolbar().getVisibility() == View.VISIBLE);
-        outState.putBoolean("navigationBarState", navigationView.getNavigationBar().getVisibility() == View.VISIBLE);
-        outState.putBoolean("controlsState", navigationView.getControls().getVisibility() == View.VISIBLE);
-        outState.putBoolean("schemeSwitchState", navigationView.getSchemeSwitch().getVisibility() == View.VISIBLE);
-        outState.putBoolean("popUpLayoutState", navigationView.getPopUpLayout().getVisibility() == View.VISIBLE);
+        if(navigationView != null){
+            if (navigationView.getWaypoints() != null)
+                outState.putParcelableArrayList("waypoints", navigationView.getWaypoints());
+            if (navigationView.getSelectedRoute() != null)
+                outState.putParcelable("route", navigationView.getSelectedRoute());
+            outState.putBoolean("directionsState", navigationView.getCreateRoute().getVisibility() == View.VISIBLE);
+            outState.putBoolean("startState", navigationView.getStart().getVisibility() == View.VISIBLE);
+            outState.putBoolean("stopState", navigationView.getStop().getVisibility() == View.VISIBLE);
+            outState.putBoolean("toolbarState", navigationView.getToolbar().getVisibility() == View.VISIBLE);
+            outState.putBoolean("navigationBarState", navigationView.getNavigationBar().getVisibility() == View.VISIBLE);
+            outState.putBoolean("controlsState", navigationView.getControls().getVisibility() == View.VISIBLE);
+            outState.putBoolean("schemeSwitchState", navigationView.getSchemeSwitch().getVisibility() == View.VISIBLE);
+            outState.putBoolean("popUpLayoutState", navigationView.getPopUpLayout().getVisibility() == View.VISIBLE);
+        }
     }
 
 
@@ -320,5 +345,24 @@ public class NavigationActivity extends AppCompatActivity {
 
     public boolean isPopUpLayoutState() {
         return popUpLayoutState;
+    }
+
+    /**
+     * Update Ui regarding the Location Status
+     */
+
+    public class GpsInfoReceiver extends BroadcastReceiver {
+        protected static final String TAG = "gps-receiver";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+                if (intent.getBooleanExtra("isOn", false))
+                    navigationView.getCurrentTrack();
+                else
+                    navigationView.showToast("Please turn on the location.");
+            } catch (Exception e) {
+            }
+        }
     }
 }

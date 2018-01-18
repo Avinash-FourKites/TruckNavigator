@@ -25,6 +25,12 @@
             android:name="com.here.android.maps.license.key"
             android:value="Q98q4cGyHD9tZRpc0ssgRg5LV3xqpskj1+XUufHiw0VDcjdxNnJfSYHov9ButM90ujx+35UUE0qdRr0AOjekOU1GWpcBbk08S/O4smn6onhS+qWdWpy/KrDqNEUxVmqwGfYWjcctq6oPyA2kUSw7XpyRl1unAGt6Z1pFfYdvKVZvrv/q2fvd/mFgb2ij/EszRVINeB3c4nf5E9rXwWLip7mhZcvjfVQC7s/z8+Fx1T8pTAJL7f6Z5yBLK5VGUBa2xLoy6JlLdM0qlbCQpSFysz2yekk/X6+DgnmgmVjE0Nx2y7/aWiltw7j1DiiyoskBrlM3rY58UMwIZzzEsZJeYehc4TqDvo1An9n9Oh2IXvHsswbty02XB95JWYvNyHoxQ1henPbAzr3vM6vDdpUztA1NUkADPh/pBQqc8cXAD6ecnfICucLf/82Fsw+RvEJtum6HnjgFI+AF//pWoKCybrm3rt/8HFnGAYscUqoOcoTbxh7P8Z5ztsbO2QU1tJRMYc2TQFgNHuvI4mUV/6keRyDbPb3ufnjGYZtAUdgB+NtOauoAbmgIRmvUXQwC8obKfu0g6Kcu2b87buZPNkPVOZtVtsV54B8EK/BK5Jm05BsCcZjChNSVi1xlF80Ts5UiLr0iHpHetKIrTwXJNbOFom77oX/pSBwqOF39sk2sGSc=" />
 
+        <receiver android:name=".receiver.LocationSettingChangedReceiver">
+            <intent-filter>
+                <action android:name="android.location.PROVIDERS_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name="com.here.android.mpa.service.MapService"
             android:exported="true"
@@ -46,6 +52,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="3fda3ecf896aa3b60f817d370226f3f89fef27e5" />
     </application>
 
 </manifest>

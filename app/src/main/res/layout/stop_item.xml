@@ -5,6 +5,9 @@
     android:orientation="vertical"
     android:layout_gravity="center|top"
     android:weightSum="100"
+    android:layout_marginTop="5dp"
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp"
     android:gravity="center">
 
     <RelativeLayout
@@ -42,7 +45,7 @@
                 android:padding="2dp"
                 android:editable="false"
                 android:singleLine="true"
-                android:hint="Select a stop."
+                android:hint="Enter destination stop"
                 android:textColorHint="@android:color/white"
                 android:textColor="@android:color/white"
                 android:textSize="14sp" />

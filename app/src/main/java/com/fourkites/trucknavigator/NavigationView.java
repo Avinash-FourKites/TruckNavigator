@@ -27,6 +27,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
@@ -178,6 +179,11 @@ public class NavigationView implements Map.OnTransformListener {
     private ImageView addStop;
     private ImageView back;
     private ImageView close;
+    private Toast toast;
+    private LinearLayout routeDetailsLayout;
+    private TextView selectedRouteEta;
+    private TextView selectedRouteDistance;
+    private RelativeLayout parent;
 
 
     public NavigationView(Activity activity, boolean isTtsEnabled, TextToSpeech tts) {
@@ -271,6 +277,10 @@ public class NavigationView implements Map.OnTransformListener {
         routesLayout = (LinearLayout) activity.findViewById(R.id.routesLayout);
         routesView = (RecyclerView) activity.findViewById(R.id.routesView);
         routesBack = (ImageView) activity.findViewById(R.id.routesBack);
+        routeDetailsLayout = (LinearLayout) activity.findViewById(R.id.routeDetailsLayout);
+        selectedRouteDistance = (TextView) activity.findViewById(R.id.selectedRouteDistance);
+        selectedRouteEta = (TextView) activity.findViewById(R.id.selectedRouteEta);
+        parent = (RelativeLayout) activity.findViewById(R.id.parent);
     }
 
     private void addListeners() {
@@ -321,11 +331,7 @@ public class NavigationView implements Map.OnTransformListener {
         currentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (m_navigationManager != null)
-                    m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW);
-
-                if (!Navigator.navigationMode)
-                    getCurrentPosition();
+                getCurrentTrack();
             }
         });
 
@@ -342,7 +348,7 @@ public class NavigationView implements Map.OnTransformListener {
                     if (waypoints != null)
                         selectedStopPosition = waypoints.size() - 1;
                 } else {
-                    Toast.makeText(activity, "Please select a stop", Toast.LENGTH_SHORT).show();
+                    showToast("Please Enter Destination.");
                 }
             }
         });
@@ -371,20 +377,20 @@ public class NavigationView implements Map.OnTransformListener {
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            public void onTextChanged(final CharSequence s, int start, int before, int count) {
                 if (searchView.isFocused()) {
                     if (!searchView.getText().toString().equals("")) {
 
                         if (searchView.getText().toString().length() >= 3) {
                             suggestLoader.setVisibility(View.VISIBLE);
-                            String text = searchView.getText().toString();
-                            final String txt = text;
+                            //String text = s.toString();
+                            //final String txt = text;
                             handler.removeCallbacks(run);
 
                             run = new Runnable() {
                                 public void run() {
                                     //stopViewHolder.loadingCircle.setVisibility(View.VISIBLE);
-                                    suggesstionsRequest(selectedStopForSuggestion, txt.trim().toString());
+                                    suggesstionsRequest(selectedStopForSuggestion, s.toString().trim());
                                 }
                             };
                             handler.postDelayed(run, 0);
@@ -400,6 +406,14 @@ public class NavigationView implements Map.OnTransformListener {
             }
         });
 
+    }
+
+    public void getCurrentTrack() {
+        if (m_navigationManager != null)
+            m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW);
+
+        if (!Navigator.navigationMode)
+            getCurrentPosition();
     }
 
     private void setStopsAdapter() {
@@ -526,9 +540,7 @@ public class NavigationView implements Map.OnTransformListener {
                         restoreViewsDuringRestart();
 
                     } else {
-                        Toast.makeText(activity,
-                                "ERROR: Cannot initialize Map with error " + error,
-                                Toast.LENGTH_LONG).show();
+                        showToast("ERROR: Cannot initialize Map with error " + error);
                     }
                 }
             });
@@ -632,12 +644,25 @@ public class NavigationView implements Map.OnTransformListener {
         }
 
         if (waypoints != null) {
-            waypoints.set(pos, stop);
+            if (waypoints.size() == 1)
+                waypoints.add(stop);
+            else
+                waypoints.set(pos, stop);
+
             map.setCenter(stop.getGeoCoordinate(), Map.Animation.BOW);
 
             stopsAdapter.notifyDataSetChanged();
             refreshRoute();
         }
+    }
+
+    private boolean avoidDuplicateStop(Stop stop) {
+        for (Stop sp : waypoints) {
+            if ((stop.getGeoCoordinate().getLongitude() == sp.getGeoCoordinate().getLongitude()) && (stop.getGeoCoordinate().getLatitude() == sp.getGeoCoordinate().getLatitude())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void refreshRoute() {
@@ -649,8 +674,13 @@ public class NavigationView implements Map.OnTransformListener {
             if (mapRoute != null)
                 map.removeMapObject(mapRoute);
 
+            if (routeDetailsLayout.getVisibility() == View.VISIBLE)
+                routeDetailsLayout.setVisibility(View.GONE);
+
             if (waypoints != null) {
+
                 addMarkerToMap(waypoints, false);
+
 
                 if (waypoints.size() > 1) {
                     createRoute.setVisibility(View.VISIBLE);
@@ -668,8 +698,9 @@ public class NavigationView implements Map.OnTransformListener {
 
 
     private void suggesstionsRequest(final Stop stop, String query) {
-        if (stop.getAddress() != null && !stop.getAddress().isEmpty())
-            query = stop.getAddress();
+       /* if (stop.getAddress() != null && !stop.getAddress().isEmpty())
+            query = stop.getAddress();*/
+
 
         String url = "https://places.api.here.com/places/v1/autosuggest?X-Map-Viewport=-76.5633,81.2945,102.7335,90.0000&app_code=K2Cpd_EKDzrZb1tz0zdpeQ&app_id=bC4fb9WQfCCZfkxspD4z&q=" + query + "&result_types=address,place,category,chain&size=10";
         StringRequest getAutoSuggestRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -713,7 +744,7 @@ public class NavigationView implements Map.OnTransformListener {
 
                     } else {
                         //no search results
-                        Toast.makeText(activity, "No suggestions", Toast.LENGTH_SHORT).show();
+                        showToast("No suggestions");
                     }
 
                 }
@@ -721,7 +752,7 @@ public class NavigationView implements Map.OnTransformListener {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(activity, "No suggestions", Toast.LENGTH_SHORT).show();
+                showToast("No suggestions");
                 suggestLoader.setVisibility(View.GONE);
             }
         });
@@ -777,7 +808,7 @@ public class NavigationView implements Map.OnTransformListener {
             if (stop.getAddress() != null) {
                 query = stop.getAddress();
             }
-            searchView.setText(query);
+            searchView.setText(Jsoup.parse(query).text());
         }
     }
 
@@ -1203,6 +1234,7 @@ public class NavigationView implements Map.OnTransformListener {
         if (m_route != null) {
             start.setVisibility(View.GONE);
             stop.setVisibility(View.VISIBLE);
+            routeDetailsLayout.setVisibility(View.GONE);
             schemeSwitch.setVisibility(View.GONE);
             popUpLayout.setVisibility(View.GONE);
             navigationBar.setVisibility(View.VISIBLE);
@@ -1215,28 +1247,37 @@ public class NavigationView implements Map.OnTransformListener {
         }
     }
 
+    private String getRouteDistance(int meters) {
+        String info = "";
+        if (meters > 0 && meters > 1000)
+            info = ((meters / 1000) + " kms");
+        else if (meters > 0 && meters <= 1000)
+            info = meters + " m";
+        return "Total Distance : " + info;
+    }
 
-    private void updateNavigationBar(int duration, int meters, int covered) {
+
+    private void updateNavigationBar(int duration, int meters, double covered) {
         if (duration > 0) {
             eta.setText(timeConversion(duration));
         }
 
         if (covered > 0 && covered > 1000)
-            distanceCovered.setText((covered / 1000) + " km");
-        else if (covered > 0 && covered < 1000)
+            distanceCovered.setText((covered / 1000) + " kms");
+        else if (covered > 0 && covered <= 1000)
             distanceCovered.setText(covered + " m");
 
         if (meters > 0 && meters > 1000)
-            totalDistance.setText((meters / 1000) + "km");
-        else if (meters > 0 && meters < 1000)
+            totalDistance.setText((meters / 1000) + " kms");
+        else if (meters > 0 && meters <= 1000)
             totalDistance.setText(meters + " m");
     }
 
     private void updateNavigationBar(int icon, int meters) {
         setManuverIcon(icon);
         if (meters > 0 && meters > 1000)
-            distanceOfManeuver.setText("In" + (meters / 1000) + " km");
-        else if (meters > 0 && meters < 1000)
+            distanceOfManeuver.setText("In" + (meters / 1000) + " kms");
+        else if (meters > 0 && meters <= 1000)
             distanceOfManeuver.setText("In" + meters + " m");
 
     }
@@ -1406,6 +1447,10 @@ public class NavigationView implements Map.OnTransformListener {
             totalDistanceVal = route.getLength();
             updateNavigationBar(route.getTta(Route.TrafficPenaltyMode.OPTIMAL, Route.WHOLE_ROUTE).getDuration(), totalDistanceVal, 0);
 
+            routeDetailsLayout.setVisibility(View.VISIBLE);
+            selectedRouteDistance.setText(getRouteDistance(totalDistanceVal));
+            selectedRouteEta.setText("Estimated Time : " + timeConversion(route.getTta(Route.TrafficPenaltyMode.OPTIMAL, Route.WHOLE_ROUTE).getDuration()));
+
 
             mapRoute = new MapRoute(route);
             mapRoute.setColor(activity.getResources().getColor(R.color.carrier_link_blue));
@@ -1447,11 +1492,11 @@ public class NavigationView implements Map.OnTransformListener {
 
         StringBuilder sb = new StringBuilder();
         if (hours > 0)
-            sb.append(hours).append(" hours");
+            sb.append(hours).append("h ");
         if (minutes > 0)
-            sb.append(minutes).append(" minutes");
+            sb.append(minutes).append("m ");
         if (seconds > 0)
-            sb.append(seconds).append(" seconds");
+            sb.append(seconds).append("s");
 
         return sb.toString();
     }
@@ -1475,6 +1520,9 @@ public class NavigationView implements Map.OnTransformListener {
         schemeSwitch.setVisibility(View.VISIBLE);
         waypoints.clear();
         stopsAdapter.notifyDataSetChanged();
+        eta.setText("");
+        totalDistance.setText("");
+        distanceCovered.setText("");
         navigationBar.setVisibility(View.GONE);
 
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -1482,8 +1530,8 @@ public class NavigationView implements Map.OnTransformListener {
         stopsView.setLayoutParams(layoutParams);
         toolbar.setVisibility(View.VISIBLE);
 
-       /* if (getCurrentLocation)
-            getCurrentPosition();*/
+        // if (getCurrentLocation)
+        getCurrentPosition();
     }
 
     private AudioPlayerDelegate player = new AudioPlayerDelegate() {
@@ -1595,6 +1643,7 @@ public class NavigationView implements Map.OnTransformListener {
 
     }
 
+
     private void startNavigation(Route route) {
         /*
          * Start the turn-by-turn navigation.Please note if the transport mode of the passed-in
@@ -1669,7 +1718,7 @@ public class NavigationView implements Map.OnTransformListener {
             geoPosition.getSpeed();
 
             try {
-                int distanceCovered = totalDistanceVal - (int) m_navigationManager.getDestinationDistance();
+                double distanceCovered = totalDistanceVal - m_navigationManager.getDestinationDistance();
                 updateNavigationBar(m_navigationManager.getTta(Route.TrafficPenaltyMode.OPTIMAL, true).getDuration(), 0, distanceCovered);
             } catch (NullPointerException e) {
             }
@@ -1851,9 +1900,10 @@ public class NavigationView implements Map.OnTransformListener {
 
 
     private void showProgress(String message) {
+        hideProgress();
         try {
             if (activity != null) {
-                {
+                if (progressBar == null) {
                     progressBar = new ProgressDialog(activity);
                     progressBar.setCancelable(false);
                     progressBar.setMessage(message);
@@ -1871,10 +1921,21 @@ public class NavigationView implements Map.OnTransformListener {
 
     private void hideProgress() {
         try {
-            if (progressBar != null && progressBar.isShowing())
+            if (progressBar != null && progressBar.isShowing()) {
                 progressBar.dismiss();
+                progressBar = null;
+            }
         } catch (IllegalArgumentException e) {
 
         }
+    }
+
+    public void showToast(String message) {
+        if (toast != null)
+            toast.cancel();
+
+        toast = Toast.makeText(activity, message, Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.BOTTOM, 0, 0);
+        toast.show();
     }
 }
