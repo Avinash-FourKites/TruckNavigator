@@ -356,12 +356,16 @@ public class NavigationActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+
             try {
-                if (intent.getBooleanExtra("isOn", false))
+                if(navigationView == null)
+                    initMap();
+                else if (intent.getBooleanExtra("isOn", false))
                     navigationView.getCurrentTrack();
                 else
                     navigationView.showToast("Please turn on the location.");
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

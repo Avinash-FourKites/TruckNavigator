@@ -348,7 +348,7 @@ public class NavigationView implements Map.OnTransformListener {
                     if (waypoints != null)
                         selectedStopPosition = waypoints.size() - 1;
                 } else {
-                    showToast("Please Enter Destination.");
+                    showToast("Please Enter Stop.");
                 }
             }
         });
@@ -656,6 +656,17 @@ public class NavigationView implements Map.OnTransformListener {
         }
     }
 
+    public void discardDuplicateStop() {
+        if (searchLayout.getVisibility() == View.VISIBLE)
+            searchLayout.setVisibility(View.GONE);
+
+        if (searchView != null) {
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null)
+                imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
+        }
+    }
+
     private boolean avoidDuplicateStop(Stop stop) {
         for (Stop sp : waypoints) {
             if ((stop.getGeoCoordinate().getLongitude() == sp.getGeoCoordinate().getLongitude()) && (stop.getGeoCoordinate().getLatitude() == sp.getGeoCoordinate().getLatitude())) {
@@ -695,7 +706,6 @@ public class NavigationView implements Map.OnTransformListener {
                 start.setVisibility(View.GONE);
         }
     }
-
 
     private void suggesstionsRequest(final Stop stop, String query) {
        /* if (stop.getAddress() != null && !stop.getAddress().isEmpty())
@@ -1252,7 +1262,7 @@ public class NavigationView implements Map.OnTransformListener {
         if (meters > 0 && meters > 1000)
             info = ((meters / 1000) + " kms");
         else if (meters > 0 && meters <= 1000)
-            info = meters + " m";
+            info = (int) meters + " m";
         return "Total Distance : " + info;
     }
 
@@ -1265,12 +1275,12 @@ public class NavigationView implements Map.OnTransformListener {
         if (covered > 0 && covered > 1000)
             distanceCovered.setText((covered / 1000) + " kms");
         else if (covered > 0 && covered <= 1000)
-            distanceCovered.setText(covered + " m");
+            distanceCovered.setText((int) covered + " m");
 
         if (meters > 0 && meters > 1000)
             totalDistance.setText((meters / 1000) + " kms");
         else if (meters > 0 && meters <= 1000)
-            totalDistance.setText(meters + " m");
+            totalDistance.setText((int) meters + " m");
     }
 
     private void updateNavigationBar(int icon, int meters) {
@@ -1278,7 +1288,7 @@ public class NavigationView implements Map.OnTransformListener {
         if (meters > 0 && meters > 1000)
             distanceOfManeuver.setText("In" + (meters / 1000) + " kms");
         else if (meters > 0 && meters <= 1000)
-            distanceOfManeuver.setText("In" + meters + " m");
+            distanceOfManeuver.setText("In" + (int) meters + " m");
 
     }
 
@@ -1522,7 +1532,7 @@ public class NavigationView implements Map.OnTransformListener {
         stopsAdapter.notifyDataSetChanged();
         eta.setText("");
         totalDistance.setText("");
-        distanceCovered.setText("");
+        distanceCovered.setText("0");
         navigationBar.setVisibility(View.GONE);
 
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);

@@ -421,7 +421,7 @@
             android:layout_margin="5dp"
             app:backgroundTint="@color/carrier_link_blue"
             android:visibility="gone"
-            app:srcCompat="@drawable/directions" />
+            app:srcCompat="@drawable/directions_white" />
 
        <!-- <android.support.design.widget.FloatingActionButton
             android:id="@+id/startNavigation"

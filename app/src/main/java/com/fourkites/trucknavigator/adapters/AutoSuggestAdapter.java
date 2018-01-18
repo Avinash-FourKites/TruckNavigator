@@ -16,6 +16,7 @@ import com.fourkites.trucknavigator.pojos.Stop;
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.routing.RouteWaypoint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,7 +57,6 @@ public class AutoSuggestAdapter extends RecyclerView.Adapter {
     }
 
 
-
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View rootView = LayoutInflater
@@ -85,6 +85,7 @@ public class AutoSuggestAdapter extends RecyclerView.Adapter {
         ((SuggestionViewHolder) holder).view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                boolean isDuplicate = false;
                 String addr = "";
                 Result suggestion = data.get(holder.getAdapterPosition());
                 if (suggestion.isCurrentLocation())
@@ -92,11 +93,27 @@ public class AutoSuggestAdapter extends RecyclerView.Adapter {
                 else
                     addr = suggestion.getHighlightedTitle() + " " + suggestion.getHighlightedVicinity();
 
-                stop.setAddress(addr);
-                GeoCoordinate geoCoordinate = new GeoCoordinate(suggestion.getPosition().get(0), suggestion.getPosition().get(1));
-                stop.setGeoCoordinate(geoCoordinate);
-                stop.setRouteWaypoint(new RouteWaypoint(geoCoordinate));
-                navigationView.addOrUpdateWaypoint(stop, stopPosition);
+                ArrayList<Stop> waypoints = navigationView.getWaypoints();
+                if (waypoints != null) {
+                    for (Stop sp : waypoints) {
+                        if (sp != null && sp.getGeoCoordinate() != null) {
+                            if ((sp.getGeoCoordinate().getLatitude() == suggestion.getPosition().get(0)) && (sp.getGeoCoordinate().getLongitude() == suggestion.getPosition().get(1))) {
+                                isDuplicate = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!isDuplicate) {
+                    stop.setAddress(addr);
+                    GeoCoordinate geoCoordinate = new GeoCoordinate(suggestion.getPosition().get(0), suggestion.getPosition().get(1));
+                    stop.setGeoCoordinate(geoCoordinate);
+                    stop.setRouteWaypoint(new RouteWaypoint(geoCoordinate));
+                    navigationView.addOrUpdateWaypoint(stop, stopPosition);
+                } else {
+                    navigationView.discardDuplicateStop();
+                }
             }
         });
 

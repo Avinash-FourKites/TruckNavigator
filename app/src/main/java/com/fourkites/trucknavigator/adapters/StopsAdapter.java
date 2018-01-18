@@ -80,6 +80,12 @@ public class StopsAdapter extends RecyclerView.Adapter {
         else
             stopViewHolder.address.setText("");
 
+        if(position == 0){
+            stopViewHolder.address.setHint("Enter stop");
+        } else {
+            stopViewHolder.address.setHint("Enter destination stop");
+        }
+
         stopViewHolder.remove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
