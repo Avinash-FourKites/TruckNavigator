@@ -32,6 +32,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -93,6 +94,7 @@ import com.here.android.mpa.search.ReverseGeocodeRequest2;
 import org.jsoup.Jsoup;
 
 import java.lang.ref.WeakReference;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -184,6 +186,8 @@ public class NavigationView implements Map.OnTransformListener {
     private TextView selectedRouteEta;
     private TextView selectedRouteDistance;
     private RelativeLayout parent;
+    private EditText speedForSimulation;
+    private final double MILES_CONVERSION = 1609.344;
 
 
     public NavigationView(Activity activity, boolean isTtsEnabled, TextToSpeech tts) {
@@ -281,6 +285,7 @@ public class NavigationView implements Map.OnTransformListener {
         selectedRouteDistance = (TextView) activity.findViewById(R.id.selectedRouteDistance);
         selectedRouteEta = (TextView) activity.findViewById(R.id.selectedRouteEta);
         parent = (RelativeLayout) activity.findViewById(R.id.parent);
+        speedForSimulation = (EditText) activity.findViewById(R.id.speedForSimulation);
     }
 
     private void addListeners() {
@@ -331,7 +336,10 @@ public class NavigationView implements Map.OnTransformListener {
         currentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getCurrentTrack();
+                try {
+                    getCurrentTrack();
+                } catch (NullPointerException e) {
+                }
             }
         });
 
@@ -627,9 +635,10 @@ public class NavigationView implements Map.OnTransformListener {
     private void showSimulationHint() {
         if (Navigator.simulate) {
             toolbarTitle.setTextColor(activity.getResources().getColor(R.color.carrier_link_blue));
+            speedForSimulation.setVisibility(View.VISIBLE);
         } else {
             toolbarTitle.setTextColor(activity.getResources().getColor(android.R.color.white));
-
+            speedForSimulation.setVisibility(View.GONE);
         }
     }
 
@@ -644,10 +653,16 @@ public class NavigationView implements Map.OnTransformListener {
         }
 
         if (waypoints != null) {
-            if (waypoints.size() == 1)
-                waypoints.add(stop);
-            else
-                waypoints.set(pos, stop);
+            try{
+                if (waypoints.size() < 1)
+                    waypoints.add(stop);
+                else
+                    waypoints.set(pos, stop);
+            } catch (IndexOutOfBoundsException e){
+                if(waypoints.size() == 1)
+                    waypoints.set(0, stop);
+            }
+
 
             map.setCenter(stop.getGeoCoordinate(), Map.Animation.BOW);
 
@@ -1002,13 +1017,18 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void showCurrentPositionMarker() {
-        if (mapFragment != null) {
-            PositionIndicator positionIndicator = mapFragment.getPositionIndicator();
-            if (!positionIndicator.isVisible())
-                positionIndicator.setVisible(true);
-            if (!positionIndicator.isAccuracyIndicatorVisible())
-                positionIndicator.setAccuracyIndicatorVisible(true);
+        try {
+            if (mapFragment != null) {
+                PositionIndicator positionIndicator = mapFragment.getPositionIndicator();
+                if (!positionIndicator.isVisible())
+                    positionIndicator.setVisible(true);
+                if (!positionIndicator.isAccuracyIndicatorVisible())
+                    positionIndicator.setAccuracyIndicatorVisible(true);
+            }
+        } catch (NullPointerException e) {
+
         }
+
     }
 
     private void getCurrentPosition() {
@@ -1260,10 +1280,14 @@ public class NavigationView implements Map.OnTransformListener {
     private String getRouteDistance(int meters) {
         String info = "";
         if (meters > 0 && meters > 1000)
-            info = ((meters / 1000) + " kms");
+            info = (getDecimalFormatter().format(meters / MILES_CONVERSION) + " miles");
         else if (meters > 0 && meters <= 1000)
             info = (int) meters + " m";
         return "Total Distance : " + info;
+    }
+
+    private DecimalFormat getDecimalFormatter() {
+        return new DecimalFormat("0.0");
     }
 
 
@@ -1273,12 +1297,12 @@ public class NavigationView implements Map.OnTransformListener {
         }
 
         if (covered > 0 && covered > 1000)
-            distanceCovered.setText((covered / 1000) + " kms");
+            distanceCovered.setText(getDecimalFormatter().format(covered / MILES_CONVERSION) + " miles");
         else if (covered > 0 && covered <= 1000)
             distanceCovered.setText((int) covered + " m");
 
         if (meters > 0 && meters > 1000)
-            totalDistance.setText((meters / 1000) + " kms");
+            totalDistance.setText(getDecimalFormatter().format(meters / MILES_CONVERSION) + " miles");
         else if (meters > 0 && meters <= 1000)
             totalDistance.setText((int) meters + " m");
     }
@@ -1286,7 +1310,7 @@ public class NavigationView implements Map.OnTransformListener {
     private void updateNavigationBar(int icon, int meters) {
         setManuverIcon(icon);
         if (meters > 0 && meters > 1000)
-            distanceOfManeuver.setText("In" + (meters / 1000) + " kms");
+            distanceOfManeuver.setText("In" + getDecimalFormatter().format(meters / MILES_CONVERSION) + " miles");
         else if (meters > 0 && meters <= 1000)
             distanceOfManeuver.setText("In" + (int) meters + " m");
 
@@ -1663,7 +1687,16 @@ public class NavigationView implements Map.OnTransformListener {
          */
 
         if (Navigator.simulate) {
-            m_navigationManager.simulate(route, 30);
+            long speed;
+            String userInput = speedForSimulation.getText().toString().trim();
+
+            if (userInput != null && !userInput.isEmpty() && !userInput.equalsIgnoreCase("0")) {
+                double sp = Long.parseLong(userInput) * 0.448;
+                speed = (long) sp;
+            } else
+                speed = 30;
+
+            m_navigationManager.simulate(route, speed);
         } else {
             m_navigationManager.startNavigation(route);
         }

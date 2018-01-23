@@ -10,6 +10,8 @@ import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -18,6 +20,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -62,6 +66,8 @@ public class NavigationActivity extends AppCompatActivity {
     private boolean schemeSwitchState;
     private boolean popUpLayoutState;
     private GpsInfoReceiver gpsInfoReceiver;
+    private LinearLayout appLayout;
+    private RelativeLayout splashLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +77,9 @@ public class NavigationActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        appLayout = findViewById(R.id.appLayout);
+        splashLayout = findViewById(R.id.splashLayout);
+
         //Restoring the data during Activity Restart
         if (savedInstanceState != null) {
             restoreDataWhenActivityRestarts(savedInstanceState);
@@ -78,6 +87,22 @@ public class NavigationActivity extends AppCompatActivity {
 
         // Initialize Text to Speech Engine
         initTTS();
+
+        startCountDown();
+    }
+
+    private void startCountDown() {
+        new CountDownTimer(2000, 500) {
+
+            public void onTick(long millisUntilFinished) {
+
+            }
+
+            public void onFinish() {
+                splashLayout.setVisibility(View.GONE);
+                appLayout.setVisibility(View.VISIBLE);
+            }
+        }.start();
     }
 
     private void restoreDataWhenActivityRestarts(Bundle savedInstanceState) {
@@ -126,6 +151,12 @@ public class NavigationActivity extends AppCompatActivity {
     public void onPause() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(gpsInfoReceiver);
         super.onPause();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        startCountDown();
     }
 
     @Override

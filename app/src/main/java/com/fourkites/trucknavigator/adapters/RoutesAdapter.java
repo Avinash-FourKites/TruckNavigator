@@ -12,6 +12,7 @@ import com.fourkites.trucknavigator.NavigationView;
 import com.fourkites.trucknavigator.R;
 import com.here.android.mpa.routing.Route;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 /**
@@ -23,12 +24,15 @@ public class RoutesAdapter extends RecyclerView.Adapter {
     private final Context context;
     private final List<Route> data;
     private NavigationView navigationView;
+    private final double MILES_CONVERSION = 1609.344;
+    private DecimalFormat df;
 
 
     public RoutesAdapter(NavigationView navigationView, Context context, List<Route> data) {
         this.context = context;
         this.data = data;
         this.navigationView = navigationView;
+        df = new DecimalFormat("0.0");
     }
 
     public static class RouteViewHolder extends RecyclerView.ViewHolder {
@@ -48,7 +52,6 @@ public class RoutesAdapter extends RecyclerView.Adapter {
     }
 
 
-
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View rootView = LayoutInflater
@@ -63,17 +66,17 @@ public class RoutesAdapter extends RecyclerView.Adapter {
         final Route route = data.get(holder.getAdapterPosition());
         final RouteViewHolder routeHolder = (RouteViewHolder) holder;
 
-        if(route != null){
+        if (route != null) {
             String distance;
-            if(route.getLength() < 1000){
-                distance = "In "+route.getLength()+" meters";
+            if (route.getLength() < 1000) {
+                distance = "In " + route.getLength() + " meters";
             } else {
-                distance = "In "+(route.getLength()/1000)+" kms";
+                distance = "In " + df.format(route.getLength() / MILES_CONVERSION) + " miles";
             }
             routeHolder.distance.setText(distance);
 
             String eta = navigationView.timeConversion(route.getTta(Route.TrafficPenaltyMode.OPTIMAL, Route.WHOLE_ROUTE).getDuration());
-            if(eta != null){
+            if (eta != null) {
                 routeHolder.eta.setText(eta);
             }
         }

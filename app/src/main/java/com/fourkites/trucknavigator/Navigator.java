@@ -14,6 +14,7 @@ public class Navigator extends Application {
 
     public static boolean simulate = false;
     public static boolean navigationMode = false;
+    public static long simulationSpeed = 0;
 
     @Override
     public void onCreate() {

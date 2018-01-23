@@ -6,10 +6,47 @@
     android:orientation="vertical"
     android:weightSum="100">
 
-    <LinearLayout
+    <RelativeLayout
+        android:id="@+id/splashLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:visibility="visible"
+        android:background="@color/colorPrimaryDark">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="28dp"
+            android:background="@drawable/logo"
+            android:elevation="10dp" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/imageView"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="98dp"
+            android:shadowDx="5"
+            android:shadowDy="10"
+            android:text="Truck Navigation"
+            android:textColor="@android:color/white"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:translationZ="5dp" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/appLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
         <!--Search Layout-->
         <RelativeLayout
             android:id="@+id/searchLayout"
@@ -135,9 +172,11 @@
                     android:maxLines="1"
                     android:padding="5dp"
                     android:text="@string/app_name"
+                    android:layout_centerVertical="true"
                     android:clickable="true"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:textColor="@android:color/white" />
+
 
                 <ImageView
                     android:id="@+id/addStop"
@@ -147,6 +186,22 @@
                     android:layout_margin="5dp"
                     android:clickable="true"
                     android:background="@drawable/add_stop"/>
+
+                <EditText
+                    android:id="@+id/speedForSimulation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toEndOf="@+id/toolbar_title"
+                    android:layout_toRightOf="@+id/toolbar_title"
+                    android:backgroundTint="@android:color/white"
+                    android:hint="speed(mph)"
+                    android:layout_marginLeft="10dp"
+                    android:textColor="@android:color/white"
+                    android:textColorHint="@android:color/white"
+                    android:ems="5"
+                    android:inputType="number"
+                    android:visibility="gone"/>
 
             </RelativeLayout>
 
