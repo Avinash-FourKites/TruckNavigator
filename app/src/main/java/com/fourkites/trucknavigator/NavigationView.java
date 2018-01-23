@@ -875,7 +875,7 @@ public class NavigationView implements Map.OnTransformListener {
         if (map != null) {
             if (stops != null) {
 
-                for (int count = 0; count < stops.size(); count++) {
+                for (int count = 1; count < stops.size(); count++) {
                     Stop stop = stops.get(count);
                     if (stop.getAddress() != null && stop.getGeoCoordinate() != null) {
                         com.here.android.mpa.common.Image markerImage = new com.here.android.mpa.common.Image();
