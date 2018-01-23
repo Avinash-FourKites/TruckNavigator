@@ -4,12 +4,13 @@
     <color name="lite_grey">#bbbbbb</color>
     <color name="carrier_link_blue">#0099CC</color>
 
-    <color name="colorPrimary">#58595b</color>
-    <color name="colorPrimaryDark">#58595b</color>
+    <color name="colorPrimary">#333333</color>
+    <color name="colorPrimaryDark">#333333</color>
     <color name="colorAccent">#58595b</color>
 
     <color name="icon_text">#FFD23F</color>
     <color name="white_smoke">#f5f5f5</color>
+    <color name="splash_light_grey">#B8B8B8</color>
 
     <color name="material_light_primary_text">#DE000000</color>
     <color name="material_light_hint_text">#61000000</color>
@@ -22,4 +23,5 @@
     <color name="fourkites_green">#019E4C</color>
     <color name="fourkites_yellow">#cac337</color>
     <color name="fourkites_red">#DB5749</color>
+    <color name="splash_red">#F6515F</color>
 </resources>
