@@ -46,6 +46,7 @@
                 android:editable="false"
                 android:singleLine="true"
                 android:hint="Enter destination stop"
+                android:focusableInTouchMode="false"
                 android:textColorHint="@android:color/white"
                 android:textColor="@android:color/white"
                 android:textSize="14sp" />
