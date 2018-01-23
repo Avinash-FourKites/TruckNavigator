@@ -713,6 +713,7 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private boolean avoidDuplicateStop(Stop stop) {
+
         for (Stop sp : waypoints) {
             if ((stop.getGeoCoordinate().getLongitude() == sp.getGeoCoordinate().getLongitude()) && (stop.getGeoCoordinate().getLatitude() == sp.getGeoCoordinate().getLatitude())) {
                 return true;
@@ -1125,6 +1126,7 @@ public class NavigationView implements Map.OnTransformListener {
                         createRoute.setVisibility(View.GONE);
 
                     addWaypoint(currentPositionStop, true);
+
                     Stop stop = new Stop();
                     addWaypoint(stop, false);
                     showCurrentPositionMarker();
@@ -1572,7 +1574,7 @@ public class NavigationView implements Map.OnTransformListener {
         return sb.toString();
     }
 
-    protected void stopNavigation(boolean getCurrentLocation) {
+    protected void stopNavigation(boolean getCurrentLocation,boolean secondTime) {
         if (mapMarkers != null) {
             map.removeMapObjects(mapMarkers);
         }
@@ -1580,6 +1582,7 @@ public class NavigationView implements Map.OnTransformListener {
         if (mapRoute != null)
             map.removeMapObject(mapRoute);
         Navigator.navigationMode = false;
+        if(!secondTime)
         tts.speak("Navigation ended", TextToSpeech.QUEUE_FLUSH, null);
         m_navigationManager.stop();
 
@@ -1905,7 +1908,7 @@ public class NavigationView implements Map.OnTransformListener {
         @Override
         public void onEnded(NavigationManager.NavigationMode navigationMode) {
             //Toast.makeText(activity, navigationMode + " was ended", Toast.LENGTH_SHORT).show();
-            stopNavigation(true);
+            stopNavigation(true,true);
         }
 
         @Override

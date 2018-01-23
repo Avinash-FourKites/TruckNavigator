@@ -347,7 +347,7 @@ public class NavigationActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
 
                         if (Navigator.navigationMode)
-                            navigationView.stopNavigation(get);
+                            navigationView.stopNavigation(get,false);
 
                         if (dialog != null)
                             dialog.cancel();
