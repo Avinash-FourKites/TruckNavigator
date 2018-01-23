@@ -76,6 +76,7 @@ import com.here.android.mpa.mapping.MapRoute;
 import com.here.android.mpa.mapping.MapState;
 import com.here.android.mpa.mapping.MapTrafficLayer;
 import com.here.android.mpa.mapping.MapTransitLayer;
+import com.here.android.mpa.mapping.OnMapRenderListener;
 import com.here.android.mpa.mapping.PositionIndicator;
 import com.here.android.mpa.routing.CoreRouter;
 import com.here.android.mpa.routing.Maneuver;
@@ -228,6 +229,7 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void settingUpUI() {
+        showProgress("loading...");
         initializeView();
         //Setting up stops list view
         setStopsAdapter();
@@ -434,14 +436,41 @@ public class NavigationView implements Map.OnTransformListener {
     private void initializeMapFragment() {
           /* Initialize the MapFragment, results will be given via the called back. */
         if (mapFragment != null) {
-            ApplicationContext context = new ApplicationContext(activity);
+            final ApplicationContext context = new ApplicationContext(activity);
             mapFragment.init(context, new OnEngineInitListener() {
+
                 @Override
                 public void onEngineInitializationCompleted(Error error) {
 
                     if (error == Error.NONE) {
                         map = mapFragment.getMap();
+                        mapFragment.addOnMapRenderListener(new OnMapRenderListener() {
+                            @Override
+                            public void onPreDraw() {
 
+                            }
+
+                            @Override
+                            public void onPostDraw(boolean b, long l) {
+                                hideProgress();
+
+                            }
+
+                            @Override
+                            public void onSizeChanged(int i, int i1) {
+
+                            }
+
+                            @Override
+                            public void onGraphicsDetached() {
+
+                            }
+
+                            @Override
+                            public void onRenderBufferCreated() {
+
+                            }
+                        });
                         mapFragment.getMapGesture().addOnGestureListener(new MapGesture.OnGestureListener() {
                             @Override
                             public void onPanStart() {
@@ -560,8 +589,8 @@ public class NavigationView implements Map.OnTransformListener {
         map.setPedestrianFeaturesVisible(set);
         map.setStreetLevelCoverageVisible(true);
         map.setProjectionMode(Map.Projection.MERCATOR);  // globe projection
-        map.setExtrudedBuildingsVisible(true);  // enable 3D building footprints
-        map.setLandmarksVisible(true);  // 3D Landmarks visible
+        map.setExtrudedBuildingsVisible(false);  // enable 3D building footprints
+        map.setLandmarksVisible(false);  // 3D Landmarks visible
         map.setCartoMarkersVisible(IconCategory.ALL, true);  // show embedded map markers
         map.setSafetySpotsVisible(true); // show speed cameras as embedded markers on the map
         map.setMapScheme(Map.Scheme.NORMAL_DAY);   // normal day mapscheme
@@ -922,7 +951,7 @@ public class NavigationView implements Map.OnTransformListener {
                                 terrain.setBackground(null);
                             }
                         });
-                        satellite.setOnClickListener(new View.OnClickListener() {
+                        /*satellite.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 map.setMapScheme(Map.Scheme.SATELLITE_DAY);
@@ -942,7 +971,7 @@ public class NavigationView implements Map.OnTransformListener {
                                 satellite.setBackground(null);
                                 mapView.setBackground(null);
                             }
-                        });
+                        });*/
 
                         trafficConditions.setOnClickListener(new View.OnClickListener() {
                             @Override
