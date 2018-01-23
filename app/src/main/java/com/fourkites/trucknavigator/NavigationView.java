@@ -29,6 +29,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -863,6 +864,10 @@ public class NavigationView implements Map.OnTransformListener {
                 query = stop.getAddress();
             }
             searchView.setText(Jsoup.parse(query).text());
+            searchView.requestFocus();
+            InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+
         }
     }
 
@@ -942,7 +947,7 @@ public class NavigationView implements Map.OnTransformListener {
                     if (popUpLayout.getVisibility() != View.VISIBLE) {
                         popUpLayout.setVisibility(View.VISIBLE);
 
-                        mapView.setOnClickListener(new View.OnClickListener() {
+                       /* mapView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 map.setMapScheme(Map.Scheme.NORMAL_DAY);
@@ -950,7 +955,7 @@ public class NavigationView implements Map.OnTransformListener {
                                 satellite.setBackground(null);
                                 terrain.setBackground(null);
                             }
-                        });
+                        });*/
                         /*satellite.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -1120,6 +1125,8 @@ public class NavigationView implements Map.OnTransformListener {
                         createRoute.setVisibility(View.GONE);
 
                     addWaypoint(currentPositionStop, true);
+                    Stop stop = new Stop();
+                    addWaypoint(stop, false);
                     showCurrentPositionMarker();
                     zoomToCurrentPosition(currentPositionStop);
                     positioningManager.removeListener(positionChangedListener);

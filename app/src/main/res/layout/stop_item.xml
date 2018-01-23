@@ -45,7 +45,6 @@
                 android:paddingLeft="5dp"
                 android:editable="false"
                 android:singleLine="true"
-                android:text="dsfsdfsdfsdfbasdk kjbviuvkj"
                 android:hint="Enter destination stop"
                 android:textColorHint="@android:color/white"
                 android:textColor="@android:color/white"
