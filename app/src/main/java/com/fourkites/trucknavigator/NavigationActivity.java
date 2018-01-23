@@ -20,6 +20,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -83,6 +84,7 @@ public class NavigationActivity extends AppCompatActivity {
         appLayout = findViewById(R.id.appLayout);
         splashLayout = findViewById(R.id.splashLayout);
         getStarted = findViewById(R.id.start_button);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         //Restoring the data during Activity Restart
         if (savedInstanceState != null) {
