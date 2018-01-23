@@ -3,6 +3,7 @@
     <color name="action_bar_driving_bottom_color">#130003</color>
     <color name="lite_grey">#bbbbbb</color>
     <color name="carrier_link_blue">#0099CC</color>
+    <color name="directions_blue">#0080FF</color>
 
     <color name="colorPrimary">#333333</color>
     <color name="colorPrimaryDark">#333333</color>
