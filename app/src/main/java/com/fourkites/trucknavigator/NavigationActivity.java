@@ -336,9 +336,9 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (Navigator.navigationMode)
-            showLogoutWarning(false, "Are you sure you want to exit the current navigation?.", false);
+            showLogoutWarning(false, "Are you sure you want to exit the current navigation?", false);
         else
-            showLogoutWarning(false, "Are you sure you want to exit the application?.", true);
+            showLogoutWarning(false, "Are you sure you want to exit the application?", true);
     }
 
     public void showLogoutWarning(final boolean get, String msg, final boolean allowExit) {

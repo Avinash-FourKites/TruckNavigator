@@ -296,14 +296,14 @@ public class NavigationView implements Map.OnTransformListener {
 
     private void addListeners() {
 
-        /*toolbarTitle.setOnClickListener(new View.OnClickListener() {
+        toolbarTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Navigator.simulate = !Navigator.simulate;
                 showSimulationHint();
 
             }
-        });*/
+        });
 
         routesBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1608,7 +1608,7 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     protected void stopNavigation(boolean getCurrentLocation, boolean secondTime) {
-        removeNavigationListeners();
+       // removeNavigationListeners();
         if (mapMarkers != null) {
             map.removeMapObjects(mapMarkers);
         }
@@ -1787,6 +1787,8 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void addNavigationListeners() {
+        removeNavigationListeners();
+
         /*
          * Register a NavigationManagerEventListener to monitor the status change on
          * NavigationManager
