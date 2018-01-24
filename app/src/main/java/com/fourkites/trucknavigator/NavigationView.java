@@ -296,8 +296,8 @@ public class NavigationView implements Map.OnTransformListener {
         toolbarTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-              //  Navigator.simulate = !Navigator.simulate;
-               // showSimulationHint();
+                Navigator.simulate = !Navigator.simulate;
+                showSimulationHint();
 
             }
         });
