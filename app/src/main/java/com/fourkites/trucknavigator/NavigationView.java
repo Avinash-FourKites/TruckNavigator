@@ -296,8 +296,8 @@ public class NavigationView implements Map.OnTransformListener {
         toolbarTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-              //  Navigator.simulate = !Navigator.simulate;
-               // showSimulationHint();
+                Navigator.simulate = !Navigator.simulate;
+                showSimulationHint();
 
             }
         });
@@ -1127,8 +1127,14 @@ public class NavigationView implements Map.OnTransformListener {
 
                     addWaypoint(currentPositionStop, true);
 
-                    Stop stop = new Stop();
-                    addWaypoint(stop, false);
+
+                    if(Navigator.isFirstTime){
+                        Stop stop = new Stop();
+                        addWaypoint(stop, false);
+                        Navigator.isFirstTime=false;
+                    }
+
+
                     showCurrentPositionMarker();
                     zoomToCurrentPosition(currentPositionStop);
                     positioningManager.removeListener(positionChangedListener);
