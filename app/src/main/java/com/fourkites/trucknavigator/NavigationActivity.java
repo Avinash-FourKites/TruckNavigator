@@ -20,6 +20,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -36,6 +38,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.vision.text.Line;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,8 +69,9 @@ public class NavigationActivity extends AppCompatActivity {
     private boolean schemeSwitchState;
     private boolean popUpLayoutState;
     private GpsInfoReceiver gpsInfoReceiver;
+    private Button getStarted;
     private LinearLayout appLayout;
-    private RelativeLayout splashLayout;
+    private LinearLayout splashLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +83,8 @@ public class NavigationActivity extends AppCompatActivity {
 
         appLayout = findViewById(R.id.appLayout);
         splashLayout = findViewById(R.id.splashLayout);
+        getStarted = findViewById(R.id.start_button);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         //Restoring the data during Activity Restart
         if (savedInstanceState != null) {
@@ -88,10 +94,25 @@ public class NavigationActivity extends AppCompatActivity {
         // Initialize Text to Speech Engine
         initTTS();
 
-        startCountDown();
+        showHomeScreen();
     }
 
+    private void showHomeScreen() {
+
+        getStarted.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                splashLayout.setVisibility(View.GONE);
+                appLayout.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+
     private void startCountDown() {
+        appLayout.setVisibility(View.GONE);
+        splashLayout.setVisibility(View.VISIBLE);
+        getStarted.setVisibility(View.GONE);
         new CountDownTimer(2000, 500) {
 
             public void onTick(long millisUntilFinished) {
@@ -328,7 +349,7 @@ public class NavigationActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
 
                         if (Navigator.navigationMode)
-                            navigationView.stopNavigation(get);
+                            navigationView.stopNavigation(get,false);
 
                         if (dialog != null)
                             dialog.cancel();

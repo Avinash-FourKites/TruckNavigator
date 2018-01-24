@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.fourkites.trucknavigator.NavigationActivity"
-    tools:showIn="@layout/activity_main">
+    tools:context="com.fourkites.trucknavigator.NavigationActivity">
 
     <RelativeLayout
         android:id="@+id/navigationBar"
@@ -242,7 +241,7 @@
                         android:textColor="@android:color/white"
                         android:textSize="11sp" />
 
-                    <TextView
+                    <!--<TextView
                         android:id="@+id/satellite"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -259,8 +258,8 @@
                         android:text="Satellite"
                         android:textColor="@android:color/white"
                         android:textSize="11sp" />
-
-                    <TextView
+-->
+                   <!-- <TextView
                         android:id="@+id/terrain"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -276,7 +275,7 @@
 
                         android:text="Terrain"
                         android:textColor="@android:color/white"
-                        android:textSize="11sp" />
+                        android:textSize="11sp" />-->
 
                 </LinearLayout>
 
@@ -419,7 +418,7 @@
             android:layout_alignParentBottom="true"
             android:layout_gravity="right"
             android:layout_margin="5dp"
-            app:backgroundTint="@color/carrier_link_blue"
+            app:backgroundTint="@color/directions_blue"
             android:visibility="gone"
             app:srcCompat="@drawable/directions_white" />
 

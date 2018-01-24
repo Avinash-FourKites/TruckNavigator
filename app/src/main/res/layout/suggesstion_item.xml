@@ -25,6 +25,7 @@
             android:layout_centerVertical="true"
             android:layout_toEndOf="@+id/icon"
             android:padding="5dp"
+            android:focusableInTouchMode="false"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@color/colorPrimary" />
 

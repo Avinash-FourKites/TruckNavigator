@@ -51,6 +51,7 @@ public class AutoSuggestAdapter extends RecyclerView.Adapter {
         public SuggestionViewHolder(View view) {
             super(view);
             this.view = view;
+
             address = (TextView) view.findViewById(R.id.address);
             icon = (ImageView) view.findViewById(R.id.icon);
         }
