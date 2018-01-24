@@ -29,7 +29,6 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -190,6 +189,7 @@ public class NavigationView implements Map.OnTransformListener {
     private RelativeLayout parent;
     private EditText speedForSimulation;
     private final double MILES_CONVERSION = 1609.344;
+    private boolean addEmptyStop = true;
 
 
     public NavigationView(Activity activity, boolean isTtsEnabled, TextToSpeech tts) {
@@ -230,7 +230,8 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void settingUpUI() {
-        showProgress("loading...");
+        //showProgress("loading...");
+
         initializeView();
         //Setting up stops list view
         setStopsAdapter();
@@ -325,7 +326,7 @@ public class NavigationView implements Map.OnTransformListener {
             @Override
             public void onClick(View v) {
                 Navigator.navigationMode = true;
-                ((NavigationActivity) activity).showLogoutWarning(true);
+                ((NavigationActivity) activity).showLogoutWarning(true, "Are you sure you want to exit the current navigation?.", false);
             }
         });
 
@@ -340,6 +341,7 @@ public class NavigationView implements Map.OnTransformListener {
             @Override
             public void onClick(View v) {
                 try {
+                    addEmptyStop = false;
                     getCurrentTrack();
                 } catch (NullPointerException e) {
                 }
@@ -425,6 +427,10 @@ public class NavigationView implements Map.OnTransformListener {
 
         if (!Navigator.navigationMode)
             getCurrentPosition();
+        else {
+            start.setVisibility(View.GONE);
+            createRoute.setVisibility(View.VISIBLE);
+        }
     }
 
     private void setStopsAdapter() {
@@ -445,6 +451,7 @@ public class NavigationView implements Map.OnTransformListener {
 
                     if (error == Error.NONE) {
                         map = mapFragment.getMap();
+
                         mapFragment.addOnMapRenderListener(new OnMapRenderListener() {
                             @Override
                             public void onPreDraw() {
@@ -453,8 +460,7 @@ public class NavigationView implements Map.OnTransformListener {
 
                             @Override
                             public void onPostDraw(boolean b, long l) {
-                                hideProgress();
-
+                                Log.d("mapView", "onPostDraw: " + b + "  long " + l);
                             }
 
                             @Override
@@ -469,9 +475,9 @@ public class NavigationView implements Map.OnTransformListener {
 
                             @Override
                             public void onRenderBufferCreated() {
-
                             }
                         });
+
                         mapFragment.getMapGesture().addOnGestureListener(new MapGesture.OnGestureListener() {
                             @Override
                             public void onPanStart() {
@@ -557,13 +563,16 @@ public class NavigationView implements Map.OnTransformListener {
                                 return false;
                             }
                         });
+
                         map.setCenter(new GeoCoordinate(41.878332, -87.629789), Map.Animation.BOW);
                         positioningManager = PositioningManager.getInstance();
+
                         if (waypoints.size() < 1)
                             getCurrentPosition();
 
                         if (m_navigationManager == null)
                             m_navigationManager = NavigationManager.getInstance();
+
                         m_navigationManager.setMap(map);
 
                         /*
@@ -576,6 +585,7 @@ public class NavigationView implements Map.OnTransformListener {
                         addingMapSettings();
 
                         restoreViewsDuringRestart();
+
 
                     } else {
                         showToast("ERROR: Cannot initialize Map with error " + error);
@@ -683,13 +693,13 @@ public class NavigationView implements Map.OnTransformListener {
         }
 
         if (waypoints != null) {
-            try{
+            try {
                 if (waypoints.size() < 1)
                     waypoints.add(stop);
                 else
                     waypoints.set(pos, stop);
-            } catch (IndexOutOfBoundsException e){
-                if(waypoints.size() == 1)
+            } catch (IndexOutOfBoundsException e) {
+                if (waypoints.size() == 1)
                     waypoints.set(0, stop);
             }
 
@@ -866,7 +876,7 @@ public class NavigationView implements Map.OnTransformListener {
             }
             searchView.setText(Jsoup.parse(query).text());
             searchView.requestFocus();
-            InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
         }
@@ -1069,7 +1079,7 @@ public class NavigationView implements Map.OnTransformListener {
     private void getCurrentPosition() {
         positioningManager.addListener(new WeakReference<PositioningManager.OnPositionChangedListener>(positionChangedListener));
         if (positioningManager.start(PositioningManager.LocationMethod.GPS_NETWORK_INDOOR)) {
-            showProgress("Getting Current Location...");
+            //showProgress("Getting Current Location...");
             if (positioningManager.hasValidPosition()) {
                 currentGeo = positioningManager.getPosition().getCoordinate();
                 currentPosition = new RouteWaypoint(currentGeo);
@@ -1120,15 +1130,17 @@ public class NavigationView implements Map.OnTransformListener {
                     stop.setCurrentLocation(true);
                     currentPositionStop = stop;
 
+                    addWaypoint(currentPositionStop, true);
+                    if (!checkForEmptyStop() && addEmptyStop) {
+                        Stop stop = new Stop();
+                        addWaypoint(stop, false);
+                    }
+
                     if (showDirections())
                         createRoute.setVisibility(View.VISIBLE);
                     else
                         createRoute.setVisibility(View.GONE);
 
-                    addWaypoint(currentPositionStop, true);
-
-                    Stop stop = new Stop();
-                    addWaypoint(stop, false);
                     showCurrentPositionMarker();
                     zoomToCurrentPosition(currentPositionStop);
                     positioningManager.removeListener(positionChangedListener);
@@ -1138,6 +1150,7 @@ public class NavigationView implements Map.OnTransformListener {
                     Log.i("NavigationView", "ERROR:RevGeocode Request returned error code:" + errorCode);
 
                 }
+                Navigator.isMapLoaded = true;
                 hideProgress();
             }
         });
@@ -1151,13 +1164,8 @@ public class NavigationView implements Map.OnTransformListener {
         if (waypoints == null)
             waypoints = new ArrayList<>();
 
-        if (isCurrent) {
-            if (waypoints.size() > 0) {
-                waypoints.set(0, stop);
-            } else {
-                waypoints.add(stop);
-            }
-
+        if (isCurrent && waypoints.size() > 0) {
+            waypoints.set(0, stop);
         } else
             waypoints.add(stop);
 
@@ -1574,7 +1582,8 @@ public class NavigationView implements Map.OnTransformListener {
         return sb.toString();
     }
 
-    protected void stopNavigation(boolean getCurrentLocation,boolean secondTime) {
+    protected void stopNavigation(boolean getCurrentLocation, boolean secondTime) {
+        removeNavigationListeners();
         if (mapMarkers != null) {
             map.removeMapObjects(mapMarkers);
         }
@@ -1582,8 +1591,8 @@ public class NavigationView implements Map.OnTransformListener {
         if (mapRoute != null)
             map.removeMapObject(mapRoute);
         Navigator.navigationMode = false;
-        if(!secondTime)
-        tts.speak("Navigation ended", TextToSpeech.QUEUE_FLUSH, null);
+        if (!secondTime)
+            tts.speak("Navigation ended", TextToSpeech.QUEUE_FLUSH, null);
         m_navigationManager.stop();
 
         selectedRoute.setM_route(null);
@@ -1603,8 +1612,9 @@ public class NavigationView implements Map.OnTransformListener {
         layoutParams.addRule(RelativeLayout.BELOW, R.id.relativeLayout2);
         stopsView.setLayoutParams(layoutParams);
         toolbar.setVisibility(View.VISIBLE);
-
+        currentPositionStop = null;
         // if (getCurrentLocation)
+        addEmptyStop = true;
         getCurrentPosition();
     }
 
@@ -1752,17 +1762,6 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void addNavigationListeners() {
-
-        try {
-            m_navigationManager.removeNavigationManagerEventListener(m_navigationManagerEventListener);
-            m_navigationManager.removePositionListener(m_positionListener);
-            m_navigationManager.removeNewInstructionEventListener(instructListener);
-            m_navigationManager.removeRerouteListener(rerouteListener);
-            m_navigationManager.removeAudioFeedbackListener(audioFeedbackListener);
-        } catch (Exception e) {
-
-        }
-
         /*
          * Register a NavigationManagerEventListener to monitor the status change on
          * NavigationManager
@@ -1787,6 +1786,18 @@ public class NavigationView implements Map.OnTransformListener {
         m_navigationManager.addAudioFeedbackListener(
                 new WeakReference<NavigationManager.AudioFeedbackListener>(audioFeedbackListener));
 
+    }
+
+    private void removeNavigationListeners() {
+        try {
+            m_navigationManager.removeNavigationManagerEventListener(m_navigationManagerEventListener);
+            m_navigationManager.removePositionListener(m_positionListener);
+            m_navigationManager.removeNewInstructionEventListener(instructListener);
+            m_navigationManager.removeRerouteListener(rerouteListener);
+            m_navigationManager.removeAudioFeedbackListener(audioFeedbackListener);
+        } catch (Exception e) {
+
+        }
     }
 
 
@@ -1908,7 +1919,7 @@ public class NavigationView implements Map.OnTransformListener {
         @Override
         public void onEnded(NavigationManager.NavigationMode navigationMode) {
             //Toast.makeText(activity, navigationMode + " was ended", Toast.LENGTH_SHORT).show();
-            stopNavigation(true,true);
+            stopNavigation(true, true);
         }
 
         @Override
@@ -1980,6 +1991,10 @@ public class NavigationView implements Map.OnTransformListener {
 
         }
     };
+
+    public void showProgressBasedOnMapAndPosition() {
+        showProgress("App is getting ready...");
+    }
 
 
     private void showProgress(String message) {

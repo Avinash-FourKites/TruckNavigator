@@ -6,62 +6,82 @@
     android:orientation="vertical"
     android:weightSum="100">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/splashLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="visible"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:weightSum="4"
         android:background="@color/colorPrimaryDark">
 
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="27dp"
+            android:layout_above="@+id/splash_truck_icon"
+           android:layout_centerHorizontal="true"
+            android:layout_marginBottom="30dp"
             android:background="@drawable/logo"
             android:elevation="10dp" />
+
         <ImageView
             android:id="@+id/splash_truck_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/splash_truck_icon"
-            android:layout_weight="2"
+            android:layout_above="@+id/median"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/splash_truck_icon" />
+
+        <TextView
+            android:id="@+id/median"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="invisible" />
+
+        <LinearLayout
+            android:id="@+id/welcomeLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_below="@+id/median"
+            android:layout_centerHorizontal="true"
             android:layout_marginTop="30dp"
-            />
-        <TextView
-            android:id="@+id/welcome_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="WELCOME"
-            android:textColor="@color/white_smoke"
-            android:layout_marginTop="50dp"
-            android:textSize="25dp"
-            android:textStyle="bold"/>
-        <TextView
-            android:id="@+id/splash_sub_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Turn By Turn Navigation"
-            android:textColor="@color/splash_light_grey" />
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/welcome_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WELCOME"
+                android:textColor="@color/white_smoke"
+                android:textSize="25dp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/splash_sub_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Turn By Turn Navigation"
+                android:layout_marginTop="5dp"
+                android:textSize="18dp"
+                android:textColor="@color/splash_light_grey" />
+
+        </LinearLayout>
+
         <Button
             android:id="@+id/start_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Get Started"
             android:background="@color/white_smoke"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
+            android:textColor="@color/splash_red"
+            android:padding="8dp"
             android:textStyle="bold"
-            android:layout_marginBottom="60dp"
-            android:textColor="@color/splash_red" />
+            android:layout_below="@+id/welcomeLayout"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="40dp"/>
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <LinearLayout
         android:id="@+id/appLayout"

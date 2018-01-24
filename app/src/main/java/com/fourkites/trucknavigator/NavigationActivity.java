@@ -11,7 +11,6 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -38,7 +37,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.vision.text.Line;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +69,7 @@ public class NavigationActivity extends AppCompatActivity {
     private GpsInfoReceiver gpsInfoReceiver;
     private Button getStarted;
     private LinearLayout appLayout;
-    private LinearLayout splashLayout;
+    private RelativeLayout splashLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +102,14 @@ public class NavigationActivity extends AppCompatActivity {
             public void onClick(View v) {
                 splashLayout.setVisibility(View.GONE);
                 appLayout.setVisibility(View.VISIBLE);
+                if (!Navigator.isMapLoaded) {
+                    if (navigationView != null) {
+                        navigationView.showProgressBasedOnMapAndPosition();
+                    } else {
+                        Log.e(TAG, "showHomeScreen onClick: Inialization error");
+                    }
+                }
+
             }
         });
     }
@@ -174,16 +180,11 @@ public class NavigationActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        startCountDown();
-    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if(navigationView != null){
+        if (navigationView != null) {
             if (navigationView.getWaypoints() != null)
                 outState.putParcelableArrayList("waypoints", navigationView.getWaypoints());
             if (navigationView.getSelectedRoute() != null)
@@ -335,26 +336,27 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (Navigator.navigationMode)
-            showLogoutWarning(false);
+            showLogoutWarning(false, "Are you sure you want to exit the current navigation?.", false);
         else
-            super.onBackPressed();
+            showLogoutWarning(false, "Are you sure you want to exit the application?.", true);
     }
 
-    public void showLogoutWarning(final boolean get) {
+    public void showLogoutWarning(final boolean get, String msg, final boolean allowExit) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder
                 .setTitle("Confirm")
-                .setMessage("Are you sure you want to exit the current navigation?.")
+                .setMessage(msg)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 
                         if (Navigator.navigationMode)
-                            navigationView.stopNavigation(get,false);
+                            navigationView.stopNavigation(get, false);
 
                         if (dialog != null)
                             dialog.cancel();
 
-
+                        if (allowExit)
+                            finish();
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -410,7 +412,7 @@ public class NavigationActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
 
             try {
-                if(navigationView == null)
+                if (navigationView == null)
                     initMap();
                 else if (intent.getBooleanExtra("isOn", false))
                     navigationView.getCurrentTrack();
