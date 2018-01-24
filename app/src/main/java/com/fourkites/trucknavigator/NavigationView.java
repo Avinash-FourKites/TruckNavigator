@@ -41,6 +41,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -54,6 +56,7 @@ import com.fourkites.trucknavigator.pojos.Result;
 import com.fourkites.trucknavigator.pojos.SearchResults;
 import com.fourkites.trucknavigator.pojos.SelectedRoute;
 import com.fourkites.trucknavigator.pojos.Stop;
+import com.fourkites.trucknavigator.utils.LocationUtil;
 import com.google.gson.Gson;
 import com.here.android.mpa.common.ApplicationContext;
 import com.here.android.mpa.common.GeoBoundingBox;
@@ -189,7 +192,6 @@ public class NavigationView implements Map.OnTransformListener {
     private RelativeLayout parent;
     private EditText speedForSimulation;
     private final double MILES_CONVERSION = 1609.344;
-    private boolean addEmptyStop = true;
 
 
     public NavigationView(Activity activity, boolean isTtsEnabled, TextToSpeech tts) {
@@ -294,14 +296,14 @@ public class NavigationView implements Map.OnTransformListener {
 
     private void addListeners() {
 
-        toolbarTitle.setOnClickListener(new View.OnClickListener() {
+        /*toolbarTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Navigator.simulate = !Navigator.simulate;
                 showSimulationHint();
 
             }
-        });
+        });*/
 
         routesBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -341,8 +343,10 @@ public class NavigationView implements Map.OnTransformListener {
             @Override
             public void onClick(View v) {
                 try {
-                    addEmptyStop = false;
-                    getCurrentTrack();
+                    if (LocationUtil.isGpsEnabled(activity))
+                        getCurrentTrack();
+                    else
+                        showToast("Please turn on the location services.");
                 } catch (NullPointerException e) {
                 }
             }
@@ -370,6 +374,8 @@ public class NavigationView implements Map.OnTransformListener {
             @Override
             public void onClick(View v) {
                 searchLayout.setVisibility(View.GONE);
+                softCloseKeyboard();
+                showDirections();
             }
         });
 
@@ -396,8 +402,6 @@ public class NavigationView implements Map.OnTransformListener {
 
                         if (searchView.getText().toString().length() >= 3) {
                             suggestLoader.setVisibility(View.VISIBLE);
-                            //String text = s.toString();
-                            //final String txt = text;
                             handler.removeCallbacks(run);
 
                             run = new Runnable() {
@@ -406,7 +410,7 @@ public class NavigationView implements Map.OnTransformListener {
                                     suggesstionsRequest(selectedStopForSuggestion, s.toString().trim());
                                 }
                             };
-                            handler.postDelayed(run, 0);
+                            handler.postDelayed(run, 2000);
                         }
                     } else {
                         searchView.clearFocus();
@@ -421,16 +425,19 @@ public class NavigationView implements Map.OnTransformListener {
 
     }
 
+    private void softCloseKeyboard() {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null)
+            imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
+    }
+
     public void getCurrentTrack() {
         if (m_navigationManager != null)
             m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW);
 
         if (!Navigator.navigationMode)
             getCurrentPosition();
-        else {
-            start.setVisibility(View.GONE);
-            createRoute.setVisibility(View.VISIBLE);
-        }
+
     }
 
     private void setStopsAdapter() {
@@ -818,7 +825,8 @@ public class NavigationView implements Map.OnTransformListener {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                showToast("No suggestions");
+                if ((error instanceof NetworkError) || (error instanceof NoConnectionError))
+                    showToast("Please check your network connection.");
                 suggestLoader.setVisibility(View.GONE);
             }
         });
@@ -1098,7 +1106,7 @@ public class NavigationView implements Map.OnTransformListener {
                     count++;
             }
 
-            if (count >= 2 && !Navigator.navigationMode)
+            if (count >= 2 && !Navigator.navigationMode && m_route == null && routesLayout.getVisibility() != View.VISIBLE)
                 return true;
         }
         return false;
@@ -1131,7 +1139,8 @@ public class NavigationView implements Map.OnTransformListener {
                     currentPositionStop = stop;
 
                     addWaypoint(currentPositionStop, true);
-                    if (!checkForEmptyStop() && addEmptyStop) {
+
+                    if ((waypoints != null && waypoints.size() == 1)) {
                         Stop stop = new Stop();
                         addWaypoint(stop, false);
                     }
@@ -1263,15 +1272,31 @@ public class NavigationView implements Map.OnTransformListener {
                                 }
 
                             } else {
-                                Toast.makeText(activity,
+                               /* Toast.makeText(activity,
                                         "Error:route calculation returned error code: " + routingError,
-                                        Toast.LENGTH_LONG).show();
+                                        Toast.LENGTH_LONG).show();*/
+                                showRouteErrorMessage(routingError);
 
                             }
                             hideProgress();
                         }
                     });
         }
+    }
+
+    private void showRouteErrorMessage(RoutingError routingError) {
+        String msg = null;
+
+        if (routingError == RoutingError.GRAPH_DISCONNECTED) {
+            msg = "No route was found.";
+        } else if (routingError == RoutingError.NO_CONNECTIVITY || routingError == RoutingError.NETWORK_COMMUNICATION || routingError == RoutingError.INVALID_OPERATION) {
+            msg = "Please check your network connection.";
+        } else {
+            msg = "Unable to contact our servers . Please try again later.";
+        }
+
+        if (msg != null)
+            showToast(msg);
     }
 
     public FloatingActionButton getCreateRoute() {
@@ -1596,6 +1621,7 @@ public class NavigationView implements Map.OnTransformListener {
         m_navigationManager.stop();
 
         selectedRoute.setM_route(null);
+        m_route = null;
 
         stop.setVisibility(View.GONE);
         start.setVisibility(View.GONE);
@@ -1614,7 +1640,6 @@ public class NavigationView implements Map.OnTransformListener {
         toolbar.setVisibility(View.VISIBLE);
         currentPositionStop = null;
         // if (getCurrentLocation)
-        addEmptyStop = true;
         getCurrentPosition();
     }
 
