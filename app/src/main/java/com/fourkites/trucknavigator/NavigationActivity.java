@@ -214,8 +214,7 @@ public class NavigationActivity extends AppCompatActivity {
         requiredSDKPermissions.add(Manifest.permission.ACCESS_WIFI_STATE);
         requiredSDKPermissions.add(Manifest.permission.ACCESS_NETWORK_STATE);
 
-        ActivityCompat.requestPermissions(this, requiredSDKPermissions.toArray(new String[requiredSDKPermissions.size()]),
-                REQUEST_CODE_ASK_PERMISSIONS);
+        ActivityCompat.requestPermissions(this, requiredSDKPermissions.toArray(new String[requiredSDKPermissions.size()]), REQUEST_CODE_ASK_PERMISSIONS);
     }
 
     @Override

@@ -296,14 +296,14 @@ public class NavigationView implements Map.OnTransformListener {
 
     private void addListeners() {
 
-        toolbarTitle.setOnClickListener(new View.OnClickListener() {
+        /*toolbarTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Navigator.simulate = !Navigator.simulate;
                 showSimulationHint();
 
             }
-        });
+        });*/
 
         routesBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -328,7 +328,7 @@ public class NavigationView implements Map.OnTransformListener {
             @Override
             public void onClick(View v) {
                 Navigator.navigationMode = true;
-                ((NavigationActivity) activity).showLogoutWarning(true, "Are you sure you want to exit the current navigation?.", false);
+                ((NavigationActivity) activity).showLogoutWarning(true, "Are you sure you want to exit the current navigation?", false);
             }
         });
 
@@ -882,11 +882,13 @@ public class NavigationView implements Map.OnTransformListener {
             if (stop.getAddress() != null) {
                 query = stop.getAddress();
             }
-            searchView.setText(Jsoup.parse(query).text());
+
+            String q = Jsoup.parse(query).text();
+            searchView.setText(q);
+            searchView.setSelection(searchView.getText().length());
             searchView.requestFocus();
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-
         }
     }
 
