@@ -29,6 +29,8 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -99,8 +101,10 @@ import org.jsoup.Jsoup;
 
 import java.lang.ref.WeakReference;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -192,6 +196,7 @@ public class NavigationView implements Map.OnTransformListener {
     private RelativeLayout parent;
     private EditText speedForSimulation;
     private final double MILES_CONVERSION = 1609.344;
+    private Calendar calendar;
 
 
     public NavigationView(Activity activity, boolean isTtsEnabled, TextToSpeech tts) {
@@ -203,6 +208,7 @@ public class NavigationView implements Map.OnTransformListener {
         searchResults = new ArrayList<>();
         queue = Volley.newRequestQueue(activity);
         selectedRoute = new SelectedRoute();
+        calendar = Calendar.getInstance();
         settingUpUI();
     }
 
@@ -296,14 +302,14 @@ public class NavigationView implements Map.OnTransformListener {
 
     private void addListeners() {
 
-        /*toolbarTitle.setOnClickListener(new View.OnClickListener() {
+        toolbarTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Navigator.simulate = !Navigator.simulate;
                 showSimulationHint();
 
             }
-        });*/
+        });
 
         routesBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -388,6 +394,8 @@ public class NavigationView implements Map.OnTransformListener {
 
         //SearchView
         searchView.setThreshold(3);
+
+        searchView.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
 
         searchView.addTextChangedListener(new TextWatcher() {
             @Override
@@ -581,13 +589,9 @@ public class NavigationView implements Map.OnTransformListener {
                             m_navigationManager = NavigationManager.getInstance();
 
                         m_navigationManager.setMap(map);
+                        m_navigationManager.setDistanceUnit(NavigationManager.UnitSystem.IMPERIAL_US);
 
-                        /*
-                        * NavigationManager contains a number of listeners which we can use to monitor the
-                        * navigation status and getting relevant instructions.In this example, we will add 2
-                        * listeners for demo purpose,please refer to HERE Android SDK API documentation for details
-                        */
-                        addNavigationListeners();
+                        m_navigationManager.setSpeedWarningEnabled(false);
 
                         addingMapSettings();
 
@@ -603,8 +607,8 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void addingMapSettings() {
-        EnumSet<Map.PedestrianFeature> set = EnumSet.of(Map.PedestrianFeature.TUNNEL, Map.PedestrianFeature.BRIDGE, Map.PedestrianFeature.CROSSWALK);
-        map.setPedestrianFeaturesVisible(set);
+      /*  EnumSet<Map.PedestrianFeature> set = EnumSet.of(Map.PedestrianFeature.TUNNEL, Map.PedestrianFeature.BRIDGE, Map.PedestrianFeature.CROSSWALK);
+        map.setPedestrianFeaturesVisible(set);*/
         map.setStreetLevelCoverageVisible(true);
         map.setProjectionMode(Map.Projection.MERCATOR);  // globe projection
         map.setExtrudedBuildingsVisible(false);  // enable 3D building footprints
@@ -1215,12 +1219,11 @@ public class NavigationView implements Map.OnTransformListener {
         routeOptions.setRouteType(RouteOptions.Type.FASTEST);
         /* Calculate 3 route. */
         routeOptions.setRouteCount(3);
+
         /* Finally set the route option */
         routePlan.setRouteOptions(routeOptions);
 
-
         /* Define waypoints for the route */
-
         if (waypoints.size() > 0) {
             for (Stop stop : waypoints) {
                 if (stop.getRouteWaypoint() != null)
@@ -1335,6 +1338,12 @@ public class NavigationView implements Map.OnTransformListener {
 
     protected void startNavigation() {
         if (m_route != null) {
+            keepScreenOn();
+            /*
+            * NavigationManager contains a number of listeners which we can use to monitor the
+            * navigation status and getting relevant instructions.
+            */
+            addNavigationListeners();
             start.setVisibility(View.GONE);
             stop.setVisibility(View.VISIBLE);
             routeDetailsLayout.setVisibility(View.GONE);
@@ -1366,18 +1375,32 @@ public class NavigationView implements Map.OnTransformListener {
 
     private void updateNavigationBar(int duration, int meters, double covered) {
         if (duration > 0) {
-            eta.setText(timeConversion(duration));
+
+            Log.d("updateNavigationBar", "duration: " + duration);
+            if (calendar == null)
+                calendar = Calendar.getInstance();
+
+            calendar.setTime(new Date());
+            calendar.add(Calendar.SECOND, duration);
+
+            SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
+            String formattedDate = df.format(calendar.getTime());
+            Log.d("updateNavigationBar", "formattedDate: " + formattedDate);
+            eta.setText(formattedDate);
+            //eta.setText(timeConversion(duration));
         }
 
-        if (covered > 0 && covered > 1000)
-            distanceCovered.setText(getDecimalFormatter().format(covered / MILES_CONVERSION) + " miles");
-        else if (covered > 0 && covered <= 1000)
-            distanceCovered.setText((int) covered + " m");
+        double remain = totalDistanceVal - covered;
 
-        if (meters > 0 && meters > 1000)
+        if (remain > 0 && remain > 1000)
+            distanceCovered.setText(getDecimalFormatter().format(remain / MILES_CONVERSION) + " miles");
+        else if (remain > 0 && remain <= 1000)
+            distanceCovered.setText((int) remain + " m");
+
+      /*  if (meters > 0 && meters > 1000)
             totalDistance.setText(getDecimalFormatter().format(meters / MILES_CONVERSION) + " miles");
         else if (meters > 0 && meters <= 1000)
-            totalDistance.setText((int) meters + " m");
+            totalDistance.setText((int) meters + " m");*/
     }
 
     private void updateNavigationBar(int icon, int meters) {
@@ -1605,12 +1628,12 @@ public class NavigationView implements Map.OnTransformListener {
             sb.append(minutes).append("m ");
         if (seconds > 0)
             sb.append(seconds).append("s");
-
         return sb.toString();
     }
 
     protected void stopNavigation(boolean getCurrentLocation, boolean secondTime) {
-       // removeNavigationListeners();
+        dontKeepScreenOn();
+        removeNavigationListeners();
         if (mapMarkers != null) {
             map.removeMapObjects(mapMarkers);
         }
@@ -1706,6 +1729,7 @@ public class NavigationView implements Map.OnTransformListener {
                         // get new guidance instructions
                         m_navigationManager.addNewInstructionEventListener(new WeakReference<>(instructListener));
 
+
                         // set usage of Nuance TTS engine if specified
                         if (isInitialized) {
                             m_navigationManager.getAudioPlayer().setDelegate(player);
@@ -1733,6 +1757,7 @@ public class NavigationView implements Map.OnTransformListener {
 
             // get new guidance instructions
             m_navigationManager.addNewInstructionEventListener(new WeakReference<>(instructListener));
+
 
             // set usage of Nuance TTS engine if specified
             if (isInitialized) {
@@ -2064,5 +2089,13 @@ public class NavigationView implements Map.OnTransformListener {
         toast = Toast.makeText(activity, message, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.BOTTOM, 0, 0);
         toast.show();
+    }
+
+    public void keepScreenOn() {
+        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    public void dontKeepScreenOn() {
+        activity.getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 }

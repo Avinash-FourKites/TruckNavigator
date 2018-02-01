@@ -32,7 +32,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Distance : "
+                    android:text="Remaining Distance : "
                     android:textColor="@android:color/white" />
 
                 <TextView
@@ -46,14 +46,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=" / "
-                    android:textColor="@android:color/white" />
+                    android:textColor="@android:color/white"
+                    android:visibility="gone"/>
 
                 <TextView
                     android:id="@+id/totalDistance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="0"
-                    android:textColor="@android:color/white" />
+                    android:textColor="@android:color/white"
+                    android:visibility="gone"/>
             </LinearLayout>
 
             <LinearLayout
@@ -64,7 +66,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ETA: "
+                    android:text="Will reach by : "
                     android:textColor="@android:color/white" />
 
                 <TextView
@@ -183,7 +185,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-
                 android:layout_centerInParent="true">
                 <TextView
                     android:id="@+id/selectedRouteEta"

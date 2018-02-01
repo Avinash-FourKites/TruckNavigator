@@ -66,6 +66,7 @@ public class NavigationActivity extends AppCompatActivity {
     private boolean controlsState;
     private boolean schemeSwitchState;
     private boolean popUpLayoutState;
+    private boolean mainViewState;
     private GpsInfoReceiver gpsInfoReceiver;
     private Button getStarted;
     private LinearLayout appLayout;
@@ -82,7 +83,6 @@ public class NavigationActivity extends AppCompatActivity {
         appLayout = findViewById(R.id.appLayout);
         splashLayout = findViewById(R.id.splashLayout);
         getStarted = findViewById(R.id.start_button);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         //Restoring the data during Activity Restart
         if (savedInstanceState != null) {
@@ -143,6 +143,15 @@ public class NavigationActivity extends AppCompatActivity {
         controlsState = savedInstanceState.getBoolean("controlsState");
         schemeSwitchState = savedInstanceState.getBoolean("schemeSwitchState");
         popUpLayoutState = savedInstanceState.getBoolean("popUpLayoutState");
+        mainViewState = savedInstanceState.getBoolean("mainViewState");
+
+        if(mainViewState){
+            appLayout.setVisibility(View.VISIBLE);
+            splashLayout.setVisibility(View.GONE);
+        } else {
+            appLayout.setVisibility(View.GONE);
+            splashLayout.setVisibility(View.VISIBLE);
+        }
     }
 
     private void initTTS() {
@@ -172,11 +181,15 @@ public class NavigationActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(gpsInfoReceiver, new IntentFilter("GPS_INFO_UPDATE_ALERT"));
+        if (navigationView != null && Navigator.navigationMode)
+            navigationView.keepScreenOn();
     }
 
     @Override
     public void onPause() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(gpsInfoReceiver);
+        if (navigationView != null)
+            navigationView.dontKeepScreenOn();
         super.onPause();
     }
 
@@ -197,6 +210,7 @@ public class NavigationActivity extends AppCompatActivity {
             outState.putBoolean("controlsState", navigationView.getControls().getVisibility() == View.VISIBLE);
             outState.putBoolean("schemeSwitchState", navigationView.getSchemeSwitch().getVisibility() == View.VISIBLE);
             outState.putBoolean("popUpLayoutState", navigationView.getPopUpLayout().getVisibility() == View.VISIBLE);
+            outState.putBoolean("mainViewState", appLayout.getVisibility() == View.VISIBLE);
         }
     }
 
@@ -340,6 +354,7 @@ public class NavigationActivity extends AppCompatActivity {
             showLogoutWarning(false, "Are you sure you want to exit the application?", true);
     }
 
+
     public void showLogoutWarning(final boolean get, String msg, final boolean allowExit) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder
@@ -421,5 +436,12 @@ public class NavigationActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (tts != null)
+            tts.shutdown();
+        super.onDestroy();
     }
 }

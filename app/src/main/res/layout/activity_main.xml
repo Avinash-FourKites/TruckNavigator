@@ -2,86 +2,10 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:weightSum="100">
 
-    <RelativeLayout
-        android:id="@+id/splashLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="visible"
-        android:background="@color/colorPrimaryDark">
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/splash_truck_icon"
-           android:layout_centerHorizontal="true"
-            android:layout_marginBottom="30dp"
-            android:background="@drawable/logo"
-            android:elevation="10dp" />
-
-        <ImageView
-            android:id="@+id/splash_truck_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/median"
-            android:layout_centerHorizontal="true"
-            android:src="@drawable/splash_truck_icon" />
-
-        <TextView
-            android:id="@+id/median"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:visibility="invisible" />
-
-        <LinearLayout
-            android:id="@+id/welcomeLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_below="@+id/median"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="30dp"
-            android:gravity="center">
-
-            <TextView
-                android:id="@+id/welcome_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="WELCOME"
-                android:textColor="@color/white_smoke"
-                android:textSize="25dp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:id="@+id/splash_sub_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Turn By Turn Navigation"
-                android:layout_marginTop="5dp"
-                android:textSize="18dp"
-                android:textColor="@color/splash_light_grey" />
-
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/start_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Get Started"
-            android:background="@color/white_smoke"
-            android:textColor="@color/splash_red"
-            android:padding="8dp"
-            android:textStyle="bold"
-            android:layout_below="@+id/welcomeLayout"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="40dp"/>
-
-    </RelativeLayout>
+    <include layout="@layout/splash_layout" />
 
     <LinearLayout
         android:id="@+id/appLayout"
@@ -129,7 +53,6 @@
                 </LinearLayout>
 
 
-
                 <AutoCompleteTextView
                     android:id="@+id/searchView"
                     android:layout_width="0dp"
@@ -164,20 +87,19 @@
                 android:id="@+id/b"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
+                android:layout_below="@+id/a"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
-                android:background="@color/colorPrimary"
-                android:layout_below="@+id/a"/>
+                android:background="@color/colorPrimary" />
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/suggestionView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_below="@+id/b"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
-                android:layout_below="@+id/b"
                 android:elevation="10dp">
-
 
 
             </android.support.v7.widget.RecyclerView>
@@ -189,7 +111,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:layout_weight="1"
-                android:visibility="gone"/>
+                android:visibility="gone" />
         </RelativeLayout>
 
         <RelativeLayout
@@ -198,25 +120,26 @@
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
             android:elevation="10dp"
-            android:visibility="visible"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="visible">
 
             <RelativeLayout
+                android:id="@+id/relativeLayout2"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/relativeLayout2">
+                android:layout_height="wrap_content">
+
                 <TextView
                     android:id="@+id/toolbar_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
                     android:layout_gravity="left"
+                    android:clickable="true"
                     android:ellipsize="end"
                     android:lines="1"
                     android:maxLines="1"
                     android:padding="5dp"
                     android:text="@string/app_name"
-                    android:layout_centerVertical="true"
-                    android:clickable="true"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:textColor="@android:color/white" />
 
@@ -227,24 +150,24 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
                     android:layout_margin="5dp"
-                    android:clickable="true"
-                    android:background="@drawable/add_stop"/>
+                    android:background="@drawable/add_stop"
+                    android:clickable="true" />
 
                 <EditText
                     android:id="@+id/speedForSimulation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
+                    android:layout_marginLeft="10dp"
                     android:layout_toEndOf="@+id/toolbar_title"
                     android:layout_toRightOf="@+id/toolbar_title"
                     android:backgroundTint="@android:color/white"
+                    android:ems="5"
                     android:hint="speed(mph)"
-                    android:layout_marginLeft="10dp"
+                    android:inputType="number"
                     android:textColor="@android:color/white"
                     android:textColorHint="@android:color/white"
-                    android:ems="5"
-                    android:inputType="number"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
             </RelativeLayout>
 
@@ -252,8 +175,8 @@
                 android:id="@+id/stopsView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
                 android:layout_below="@+id/relativeLayout2"
                 android:visibility="visible" />
 
