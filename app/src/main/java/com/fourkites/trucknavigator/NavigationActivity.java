@@ -67,6 +67,7 @@ public class NavigationActivity extends AppCompatActivity {
     private boolean schemeSwitchState;
     private boolean popUpLayoutState;
     private boolean mainViewState;
+    private boolean routeViewState;
     private GpsInfoReceiver gpsInfoReceiver;
     private Button getStarted;
     private LinearLayout appLayout;
@@ -144,6 +145,7 @@ public class NavigationActivity extends AppCompatActivity {
         schemeSwitchState = savedInstanceState.getBoolean("schemeSwitchState");
         popUpLayoutState = savedInstanceState.getBoolean("popUpLayoutState");
         mainViewState = savedInstanceState.getBoolean("mainViewState");
+        routeViewState = savedInstanceState.getBoolean("routeViewState");
 
         if(mainViewState){
             appLayout.setVisibility(View.VISIBLE);
@@ -211,6 +213,7 @@ public class NavigationActivity extends AppCompatActivity {
             outState.putBoolean("schemeSwitchState", navigationView.getSchemeSwitch().getVisibility() == View.VISIBLE);
             outState.putBoolean("popUpLayoutState", navigationView.getPopUpLayout().getVisibility() == View.VISIBLE);
             outState.putBoolean("mainViewState", appLayout.getVisibility() == View.VISIBLE);
+            outState.putBoolean("routeViewState", navigationView.getRouteDetailsLayout().getVisibility() == View.VISIBLE);
         }
     }
 
@@ -413,6 +416,10 @@ public class NavigationActivity extends AppCompatActivity {
 
     public boolean isPopUpLayoutState() {
         return popUpLayoutState;
+    }
+
+    public boolean isRouteDetailsLayoutState() {
+        return routeViewState;
     }
 
     /**

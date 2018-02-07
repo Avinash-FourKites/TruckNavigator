@@ -162,6 +162,7 @@ public class NavigationView implements Map.OnTransformListener {
     private AutoCompleteTextView searchView;
     private Handler handler = new Handler();
     private Runnable run;
+    private Runnable navigationBarUpdateRun;
     private Stop selectedStopForSuggestion;
     private int selectedStopPosition;
     private RequestQueue queue;
@@ -418,7 +419,7 @@ public class NavigationView implements Map.OnTransformListener {
                                     suggesstionsRequest(selectedStopForSuggestion, s.toString().trim());
                                 }
                             };
-                            handler.postDelayed(run, 2000);
+                            handler.postDelayed(run, 1000);
                         }
                     } else {
                         searchView.clearFocus();
@@ -517,6 +518,12 @@ public class NavigationView implements Map.OnTransformListener {
                             @Override
                             public boolean onMapObjectsSelected(List<ViewObject> list) {
                                 allowZoomOnMapGesture();
+                                for (ViewObject viewObject : list) {
+                                    if (viewObject instanceof MapMarker) {
+                                        ((MapMarker) viewObject).showInfoBubble();
+                                        break;
+                                    }
+                                }
                                 return false;
                             }
 
@@ -590,13 +597,12 @@ public class NavigationView implements Map.OnTransformListener {
 
                         m_navigationManager.setMap(map);
                         m_navigationManager.setDistanceUnit(NavigationManager.UnitSystem.IMPERIAL_US);
-
                         m_navigationManager.setSpeedWarningEnabled(false);
+
 
                         addingMapSettings();
 
                         restoreViewsDuringRestart();
-
 
                     } else {
                         showToast("ERROR: Cannot initialize Map with error " + error);
@@ -636,6 +642,7 @@ public class NavigationView implements Map.OnTransformListener {
             controlsState = ((NavigationActivity) activity).isControlsState();
             schemeSwitchState = ((NavigationActivity) activity).isSchemeSwitchState();
             popUpLayoutState = ((NavigationActivity) activity).isPopUpLayoutState();
+
             if (directionsState)
                 getCreateRoute().setVisibility(View.VISIBLE);
             else
@@ -680,6 +687,21 @@ public class NavigationView implements Map.OnTransformListener {
                 getPopUpLayout().setVisibility(View.VISIBLE);
             else
                 getPopUpLayout().setVisibility(View.GONE);
+
+            if (((NavigationActivity) activity).isRouteDetailsLayoutState())
+                getRouteDetailsLayout().setVisibility(View.VISIBLE);
+            else
+                getRouteDetailsLayout().setVisibility(View.GONE);
+
+            handler.removeCallbacks(run);
+
+            run = new Runnable() {
+                public void run() {
+                    //stopViewHolder.loadingCircle.setVisibility(View.VISIBLE);
+                    setToRoadView();
+                }
+            };
+            handler.postDelayed(run, 1200);
         }
     }
 
@@ -759,7 +781,6 @@ public class NavigationView implements Map.OnTransformListener {
 
                 addMarkerToMap(waypoints, false);
 
-
                 if (waypoints.size() > 1) {
                     createRoute.setVisibility(View.VISIBLE);
 
@@ -787,6 +808,7 @@ public class NavigationView implements Map.OnTransformListener {
                 if (response != null && !response.isEmpty()) {
                     Gson gson = new Gson();
                     SearchResults results = gson.fromJson(response, SearchResults.class);
+                    //softCloseKeyboard();
                     if (results.getResults() != null && results.getResults().size() > 0) {
                         //we have results
                         if (searchResults != null)
@@ -929,19 +951,6 @@ public class NavigationView implements Map.OnTransformListener {
                         positioningManager.removeListener(positionChangedListener);
                     }
                 }
-
-
-
-
-/*                if (waypoints != null && waypoints.size() > 1) {
-                    createRoute();
-                    zoomToFit();
-                } else if (waypoints != null && waypoints.size() == 1) {
-                    map.setCenter(waypoints.get(0).getGeoCoordinate(), Map.Animation.LINEAR);
-                    map.setMapScheme(Map.Scheme.NORMAL_DAY);
-                    map.setZoomLevel(13.2);
-                    positioningManager.removeListener(positionChangedListener);
-                }*/
             }
 
         }
@@ -1324,6 +1333,10 @@ public class NavigationView implements Map.OnTransformListener {
         return popUpLayout;
     }
 
+    public LinearLayout getRouteDetailsLayout() {
+        return routeDetailsLayout;
+    }
+
     public RelativeLayout getNavigationBar() {
         return navigationBar;
     }
@@ -1383,7 +1396,7 @@ public class NavigationView implements Map.OnTransformListener {
             calendar.setTime(new Date());
             calendar.add(Calendar.SECOND, duration);
 
-            SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
+            SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
             String formattedDate = df.format(calendar.getTime());
             Log.d("updateNavigationBar", "formattedDate: " + formattedDate);
             eta.setText(formattedDate);
@@ -1392,24 +1405,22 @@ public class NavigationView implements Map.OnTransformListener {
 
         double remain = totalDistanceVal - covered;
 
-        if (remain > 0 && remain > 1000)
+        if (remain > 0 && remain > 1610)
             distanceCovered.setText(getDecimalFormatter().format(remain / MILES_CONVERSION) + " miles");
-        else if (remain > 0 && remain <= 1000)
-            distanceCovered.setText((int) remain + " m");
-
-      /*  if (meters > 0 && meters > 1000)
-            totalDistance.setText(getDecimalFormatter().format(meters / MILES_CONVERSION) + " miles");
-        else if (meters > 0 && meters <= 1000)
-            totalDistance.setText((int) meters + " m");*/
+        else if (remain > 0 && remain <= 1610) {
+            String feet = getDecimalFormatter().format(remain * 3.28084);
+            distanceCovered.setText(feet + " feet");
+        }
     }
 
     private void updateNavigationBar(int icon, int meters) {
         setManuverIcon(icon);
-        if (meters > 0 && meters > 1000)
+        if (meters > 0 && meters > 1610)
             distanceOfManeuver.setText("In" + getDecimalFormatter().format(meters / MILES_CONVERSION) + " miles");
-        else if (meters > 0 && meters <= 1000)
-            distanceOfManeuver.setText("In" + (int) meters + " m");
-
+        else if (meters > 0 && meters <= 1610) {
+            String feet = getDecimalFormatter().format(meters * 3.28084);
+            distanceOfManeuver.setText("In" + feet + " feet");
+        }
     }
 
     private void setManuverIcon(int id) {
@@ -1693,6 +1704,14 @@ public class NavigationView implements Map.OnTransformListener {
             m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW_NOZOOM);
     }
 
+    private void setToRoadView() {
+        if (m_navigationManager != null && Navigator.navigationMode) {
+            m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW_NOZOOM);
+            m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW);
+            addNavigationListeners();
+        }
+    }
+
     private void startGuidance(final Route route) {
 
 
@@ -1881,14 +1900,20 @@ public class NavigationView implements Map.OnTransformListener {
             // Interpret and present the Maneuver object as it contains
             // turn by turn navigation instructions for the user.
             try {
-                Maneuver maneuver = m_navigationManager.getNextManeuver();
-                maneuver.getIcon().value();
-                maneuver.getDistanceToNextManeuver();
-                maneuver.getAction().name();
-                if (maneuver.getIcon() != null)
-                    updateNavigationBar(maneuver.getIcon().value(), maneuver.getDistanceToNextManeuver());
-                else
-                    updateNavigationBar(-1, maneuver.getDistanceToNextManeuver());
+                final Maneuver maneuver = m_navigationManager.getNextManeuver();
+
+                handler.removeCallbacks(navigationBarUpdateRun);
+
+                navigationBarUpdateRun = new Runnable() {
+                    public void run() {
+                        if (maneuver.getIcon() != null)
+                            updateNavigationBar(maneuver.getIcon().value(), maneuver.getDistanceToNextManeuver());
+                        else
+                            updateNavigationBar(-1, maneuver.getDistanceToNextManeuver());
+                    }
+                };
+                handler.postDelayed(navigationBarUpdateRun, 0);
+
             } catch (NullPointerException e) {
             }
         }
