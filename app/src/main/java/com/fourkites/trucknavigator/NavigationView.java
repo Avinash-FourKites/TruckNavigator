@@ -114,7 +114,7 @@ import java.util.List;
 public class NavigationView implements Map.OnTransformListener {
 
     private MapFragment mapFragment;
-    private Activity activity;
+    public Activity activity;
     private Button m_naviControlButton;
     private static Map map;
     private NavigationManager m_navigationManager;
@@ -156,7 +156,7 @@ public class NavigationView implements Map.OnTransformListener {
     private TextView eta;
     private ImageView manuverIcon;
     private TextView distanceOfManeuver;
-    private RelativeLayout navigationBar;
+    private RelativeLayout navigationBar, iconLayout;
     private int totalDistanceVal;
     private RelativeLayout searchLayout;
     private AutoCompleteTextView searchView;
@@ -223,6 +223,7 @@ public class NavigationView implements Map.OnTransformListener {
         queue = Volley.newRequestQueue(activity);
         this.selectedRoute = selectedRoute;
         m_route = selectedRoute.getM_route();
+
         settingUpUI();
     }
 
@@ -258,47 +259,52 @@ public class NavigationView implements Map.OnTransformListener {
 
         //Initializing MAPVIEW
         mapFragment = new MapFragment();
-        mapFragmentContainer = (FrameLayout) activity.findViewById(R.id.mapFragmentContainer);
-        activity.getFragmentManager().beginTransaction().add(mapFragmentContainer.getId(), mapFragment, "MAP_TAG1").commit();
-        mapFragment.setRetainInstance(true);
+        if (activity != null) {
+            mapFragmentContainer = (FrameLayout) activity.findViewById(R.id.mapFragmentContainer);
+            activity.getFragmentManager().beginTransaction().add(mapFragmentContainer.getId(), mapFragment, "MAP_TAG1").commit();
+            mapFragment.setRetainInstance(true);
 
-        toolbar = (RelativeLayout) activity.findViewById(R.id.toolbar);
-        start = (FloatingActionButton) activity.findViewById(R.id.startNavigation);
-        createRoute = (FloatingActionButton) activity.findViewById(R.id.createRoute);
-        stop = (FloatingActionButton) activity.findViewById(R.id.stopNavigation);
-        schemeSwitch = (ImageView) activity.findViewById(R.id.schemeSwitch);
-        popUpLayout = (LinearLayout) activity.findViewById(R.id.popUpLayout);
-        mapView = (TextView) activity.findViewById(R.id.navigationView);
-        satellite = (TextView) activity.findViewById(R.id.satellite);
-        terrain = (TextView) activity.findViewById(R.id.terrain);
-        trafficConditions = (TextView) activity.findViewById(R.id.trafficConditions);
-        publicTransport = (TextView) activity.findViewById(R.id.publicTransport);
-        showTrafficIncidents = (TextView) activity.findViewById(R.id.showTrafficIncidents);
-        currentLocation = (ImageView) activity.findViewById(R.id.currentLocation);
-        suggestLoader = (ProgressBar) activity.findViewById(R.id.suggestLoader);
-        distanceCovered = (TextView) activity.findViewById(R.id.distanceCovered);
-        totalDistance = (TextView) activity.findViewById(R.id.totalDistance);
-        eta = (TextView) activity.findViewById(R.id.eta);
-        navigationBar = (RelativeLayout) activity.findViewById(R.id.navigationBar);
-        manuverIcon = (ImageView) activity.findViewById(R.id.manuverIcon);
-        distanceOfManeuver = (TextView) activity.findViewById(R.id.distanceOfManeuver);
-        stopsView = (RecyclerView) activity.findViewById(R.id.stopsView);
-        controls = (LinearLayout) activity.findViewById(R.id.controls);
-        searchLayout = (RelativeLayout) activity.findViewById(R.id.searchLayout);
-        addStop = (ImageView) activity.findViewById(R.id.addStop);
-        back = (ImageView) activity.findViewById(R.id.back);
-        close = (ImageView) activity.findViewById(R.id.remove);
-        searchView = (AutoCompleteTextView) activity.findViewById(R.id.searchView);
-        suggestionView = (RecyclerView) activity.findViewById(R.id.suggestionView);
-        toolbarTitle = (TextView) activity.findViewById(R.id.toolbar_title);
-        routesLayout = (LinearLayout) activity.findViewById(R.id.routesLayout);
-        routesView = (RecyclerView) activity.findViewById(R.id.routesView);
-        routesBack = (ImageView) activity.findViewById(R.id.routesBack);
-        routeDetailsLayout = (LinearLayout) activity.findViewById(R.id.routeDetailsLayout);
-        selectedRouteDistance = (TextView) activity.findViewById(R.id.selectedRouteDistance);
-        selectedRouteEta = (TextView) activity.findViewById(R.id.selectedRouteEta);
-        parent = (RelativeLayout) activity.findViewById(R.id.parent);
-        speedForSimulation = (EditText) activity.findViewById(R.id.speedForSimulation);
+            toolbar = (RelativeLayout) activity.findViewById(R.id.toolbar);
+            start = (FloatingActionButton) activity.findViewById(R.id.startNavigation);
+            createRoute = (FloatingActionButton) activity.findViewById(R.id.createRoute);
+            stop = (FloatingActionButton) activity.findViewById(R.id.stopNavigation);
+            schemeSwitch = (ImageView) activity.findViewById(R.id.schemeSwitch);
+            popUpLayout = (LinearLayout) activity.findViewById(R.id.popUpLayout);
+            mapView = (TextView) activity.findViewById(R.id.navigationView);
+            satellite = (TextView) activity.findViewById(R.id.satellite);
+            terrain = (TextView) activity.findViewById(R.id.terrain);
+            trafficConditions = (TextView) activity.findViewById(R.id.trafficConditions);
+            publicTransport = (TextView) activity.findViewById(R.id.publicTransport);
+            showTrafficIncidents = (TextView) activity.findViewById(R.id.showTrafficIncidents);
+            currentLocation = (ImageView) activity.findViewById(R.id.currentLocation);
+            suggestLoader = (ProgressBar) activity.findViewById(R.id.suggestLoader);
+            distanceCovered = (TextView) activity.findViewById(R.id.distanceCovered);
+            totalDistance = (TextView) activity.findViewById(R.id.totalDistance);
+            eta = (TextView) activity.findViewById(R.id.eta);
+            navigationBar = (RelativeLayout) activity.findViewById(R.id.navigationBar);
+            iconLayout = (RelativeLayout) activity.findViewById(R.id.iconLayout);
+            manuverIcon = (ImageView) activity.findViewById(R.id.manuverIcon);
+            distanceOfManeuver = (TextView) activity.findViewById(R.id.distanceOfManeuver);
+            stopsView = (RecyclerView) activity.findViewById(R.id.stopsView);
+            controls = (LinearLayout) activity.findViewById(R.id.controls);
+            searchLayout = (RelativeLayout) activity.findViewById(R.id.searchLayout);
+            addStop = (ImageView) activity.findViewById(R.id.addStop);
+            back = (ImageView) activity.findViewById(R.id.back);
+            close = (ImageView) activity.findViewById(R.id.remove);
+            searchView = (AutoCompleteTextView) activity.findViewById(R.id.searchView);
+            suggestionView = (RecyclerView) activity.findViewById(R.id.suggestionView);
+            toolbarTitle = (TextView) activity.findViewById(R.id.toolbar_title);
+            routesLayout = (LinearLayout) activity.findViewById(R.id.routesLayout);
+            routesView = (RecyclerView) activity.findViewById(R.id.routesView);
+            routesBack = (ImageView) activity.findViewById(R.id.routesBack);
+            routeDetailsLayout = (LinearLayout) activity.findViewById(R.id.routeDetailsLayout);
+            selectedRouteDistance = (TextView) activity.findViewById(R.id.selectedRouteDistance);
+            selectedRouteEta = (TextView) activity.findViewById(R.id.selectedRouteEta);
+            parent = (RelativeLayout) activity.findViewById(R.id.parent);
+            speedForSimulation = (EditText) activity.findViewById(R.id.speedForSimulation);
+        } else {
+            throw new NullPointerException("Activity null");
+        }
     }
 
     private void addListeners() {
@@ -308,7 +314,6 @@ public class NavigationView implements Map.OnTransformListener {
             public void onClick(View v) {
                 Navigator.simulate = !Navigator.simulate;
                 showSimulationHint();
-
             }
         });
 
@@ -466,144 +471,147 @@ public class NavigationView implements Map.OnTransformListener {
                 public void onEngineInitializationCompleted(Error error) {
 
                     if (error == Error.NONE) {
+
                         map = mapFragment.getMap();
+                        if (map != null) {
+                            mapFragment.addOnMapRenderListener(new OnMapRenderListener() {
+                                @Override
+                                public void onPreDraw() {
 
-                        mapFragment.addOnMapRenderListener(new OnMapRenderListener() {
-                            @Override
-                            public void onPreDraw() {
-
-                            }
-
-                            @Override
-                            public void onPostDraw(boolean b, long l) {
-                                Log.d("mapView", "onPostDraw: " + b + "  long " + l);
-                            }
-
-                            @Override
-                            public void onSizeChanged(int i, int i1) {
-
-                            }
-
-                            @Override
-                            public void onGraphicsDetached() {
-
-                            }
-
-                            @Override
-                            public void onRenderBufferCreated() {
-                            }
-                        });
-
-                        mapFragment.getMapGesture().addOnGestureListener(new MapGesture.OnGestureListener() {
-                            @Override
-                            public void onPanStart() {
-                                allowZoomOnMapGesture();
-                            }
-
-                            @Override
-                            public void onPanEnd() {
-                                allowZoomOnMapGesture();
-                            }
-
-                            @Override
-                            public void onMultiFingerManipulationStart() {
-                                allowZoomOnMapGesture();
-                            }
-
-                            @Override
-                            public void onMultiFingerManipulationEnd() {
-                                allowZoomOnMapGesture();
-                            }
-
-                            @Override
-                            public boolean onMapObjectsSelected(List<ViewObject> list) {
-                                allowZoomOnMapGesture();
-                                for (ViewObject viewObject : list) {
-                                    if (viewObject instanceof MapMarker) {
-                                        ((MapMarker) viewObject).showInfoBubble();
-                                        break;
-                                    }
                                 }
-                                return false;
-                            }
 
-                            @Override
-                            public boolean onTapEvent(PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public void onPostDraw(boolean b, long l) {
+                                    //Log.d("mapView", "onPostDraw: " + b + "  long " + l);
+                                }
 
-                            @Override
-                            public boolean onDoubleTapEvent(PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public void onSizeChanged(int i, int i1) {
 
-                            @Override
-                            public void onPinchLocked() {
-                                allowZoomOnMapGesture();
-                            }
+                                }
 
-                            @Override
-                            public boolean onPinchZoomEvent(float v, PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public void onGraphicsDetached() {
 
-                            @Override
-                            public void onRotateLocked() {
-                                allowZoomOnMapGesture();
-                            }
+                                }
 
-                            @Override
-                            public boolean onRotateEvent(float v) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public void onRenderBufferCreated() {
+                                }
+                            });
 
-                            @Override
-                            public boolean onTiltEvent(float v) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                            mapFragment.getMapGesture().addOnGestureListener(new MapGesture.OnGestureListener() {
+                                @Override
+                                public void onPanStart() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                            @Override
-                            public boolean onLongPressEvent(PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public void onPanEnd() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                            @Override
-                            public void onLongPressRelease() {
-                                allowZoomOnMapGesture();
+                                @Override
+                                public void onMultiFingerManipulationStart() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                            }
+                                @Override
+                                public void onMultiFingerManipulationEnd() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                            @Override
-                            public boolean onTwoFingerTapEvent(PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
-                        });
+                                @Override
+                                public boolean onMapObjectsSelected(List<ViewObject> list) {
+                                    allowZoomOnMapGesture();
+                                    for (ViewObject viewObject : list) {
+                                        if (viewObject instanceof MapMarker) {
+                                            ((MapMarker) viewObject).showInfoBubble();
+                                            break;
+                                        }
+                                    }
+                                    return false;
+                                }
 
-                        map.setCenter(new GeoCoordinate(41.878332, -87.629789), Map.Animation.BOW);
-                        positioningManager = PositioningManager.getInstance();
+                                @Override
+                                public boolean onTapEvent(PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
 
-                        if (waypoints.size() < 1)
-                            getCurrentPosition();
+                                @Override
+                                public boolean onDoubleTapEvent(PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
 
-                        if (m_navigationManager == null)
-                            m_navigationManager = NavigationManager.getInstance();
+                                @Override
+                                public void onPinchLocked() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                        m_navigationManager.setMap(map);
-                        m_navigationManager.setDistanceUnit(NavigationManager.UnitSystem.IMPERIAL_US);
-                        m_navigationManager.setSpeedWarningEnabled(false);
+                                @Override
+                                public boolean onPinchZoomEvent(float v, PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
+
+                                @Override
+                                public void onRotateLocked() {
+                                    allowZoomOnMapGesture();
+                                }
+
+                                @Override
+                                public boolean onRotateEvent(float v) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
+
+                                @Override
+                                public boolean onTiltEvent(float v) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
+
+                                @Override
+                                public boolean onLongPressEvent(PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
+
+                                @Override
+                                public void onLongPressRelease() {
+                                    allowZoomOnMapGesture();
+
+                                }
+
+                                @Override
+                                public boolean onTwoFingerTapEvent(PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
+                            });
+
+                            positioningManager = PositioningManager.getInstance();
+                            if (waypoints != null && waypoints.size() > 0 && waypoints.get(0).getGeoCoordinate() != null)
+                                map.setCenter(waypoints.get(0).getGeoCoordinate(), Map.Animation.BOW);
+                            else
+                                map.setCenter(new GeoCoordinate(41.878332, -87.629789), Map.Animation.BOW);
 
 
-                        addingMapSettings();
+                            if (waypoints.size() < 1)
+                                getCurrentPosition();
 
-                        restoreViewsDuringRestart();
+                            if (m_navigationManager == null)
+                                m_navigationManager = NavigationManager.getInstance();
 
+                            m_navigationManager.setMap(map);
+                            m_navigationManager.setDistanceUnit(NavigationManager.UnitSystem.IMPERIAL_US);
+
+                            addingMapSettings();
+
+                            restoreViewsDuringRestart();
+                        }
                     } else {
                         showToast("ERROR: Cannot initialize Map with error " + error);
                     }
@@ -665,10 +673,13 @@ public class NavigationView implements Map.OnTransformListener {
                 getToolbar().setVisibility(View.GONE);
 
 
-            if (navigationBarState)
+            if (navigationBarState) {
                 getNavigationBar().setVisibility(View.VISIBLE);
-            else
+                iconLayout.setVisibility(View.VISIBLE);
+            } else {
                 getNavigationBar().setVisibility(View.GONE);
+                iconLayout.setVisibility(View.GONE);
+            }
 
 
             if (controlsState)
@@ -692,6 +703,16 @@ public class NavigationView implements Map.OnTransformListener {
                 getRouteDetailsLayout().setVisibility(View.VISIBLE);
             else
                 getRouteDetailsLayout().setVisibility(View.GONE);
+
+            if (Navigator.navigationMode) {
+                getStop().setVisibility(View.VISIBLE);
+                getControls().setVisibility(View.VISIBLE);
+                getSchemeSwitch().setVisibility(View.GONE);
+                getNavigationBar().setVisibility(View.VISIBLE);
+            } else {
+                getSchemeSwitch().setVisibility(View.VISIBLE);
+                getControls().setVisibility(View.VISIBLE);
+            }
 
             handler.removeCallbacks(run);
 
@@ -1363,6 +1384,7 @@ public class NavigationView implements Map.OnTransformListener {
             schemeSwitch.setVisibility(View.GONE);
             popUpLayout.setVisibility(View.GONE);
             navigationBar.setVisibility(View.VISIBLE);
+            iconLayout.setVisibility(View.VISIBLE);
             toolbar.setVisibility(View.GONE);
 
             if (currentPositionStop != null)
@@ -1389,7 +1411,7 @@ public class NavigationView implements Map.OnTransformListener {
     private void updateNavigationBar(int duration, int meters, double covered) {
         if (duration > 0) {
 
-            Log.d("updateNavigationBar", "duration: " + duration);
+            // Log.d("updateNavigationBar", "duration: " + duration);
             if (calendar == null)
                 calendar = Calendar.getInstance();
 
@@ -1398,29 +1420,29 @@ public class NavigationView implements Map.OnTransformListener {
 
             SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
             String formattedDate = df.format(calendar.getTime());
-            Log.d("updateNavigationBar", "formattedDate: " + formattedDate);
+            //Log.d("updateNavigationBar", "formattedDate: " + formattedDate);
             eta.setText(formattedDate);
             //eta.setText(timeConversion(duration));
         }
 
         double remain = totalDistanceVal - covered;
 
-        if (remain > 0 && remain > 1610)
+        if (remain > 0/* && remain > 1610*/)
             distanceCovered.setText(getDecimalFormatter().format(remain / MILES_CONVERSION) + " miles");
-        else if (remain > 0 && remain <= 1610) {
+       /* else if (remain > 0 && remain <= 1610) {
             String feet = getDecimalFormatter().format(remain * 3.28084);
             distanceCovered.setText(feet + " feet");
-        }
+        }*/
     }
 
     private void updateNavigationBar(int icon, int meters) {
         setManuverIcon(icon);
-        if (meters > 0 && meters > 1610)
+        if (meters > 0 /*&& meters > 1610*/)
             distanceOfManeuver.setText("In" + getDecimalFormatter().format(meters / MILES_CONVERSION) + " miles");
-        else if (meters > 0 && meters <= 1610) {
+      /*  else if (meters > 0 && meters <= 1610) {
             String feet = getDecimalFormatter().format(meters * 3.28084);
             distanceOfManeuver.setText("In" + feet + " feet");
-        }
+        }*/
     }
 
     private void setManuverIcon(int id) {
@@ -1654,7 +1676,8 @@ public class NavigationView implements Map.OnTransformListener {
         Navigator.navigationMode = false;
         if (!secondTime)
             tts.speak("Navigation ended", TextToSpeech.QUEUE_FLUSH, null);
-        m_navigationManager.stop();
+        if (m_navigationManager != null)
+            m_navigationManager.stop();
 
         selectedRoute.setM_route(null);
         m_route = null;
@@ -1669,7 +1692,7 @@ public class NavigationView implements Map.OnTransformListener {
         totalDistance.setText("");
         distanceCovered.setText("0");
         navigationBar.setVisibility(View.GONE);
-
+        iconLayout.setVisibility(View.GONE);
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         layoutParams.addRule(RelativeLayout.BELOW, R.id.relativeLayout2);
         stopsView.setLayoutParams(layoutParams);
@@ -1709,6 +1732,10 @@ public class NavigationView implements Map.OnTransformListener {
             m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW_NOZOOM);
             m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW);
             addNavigationListeners();
+            if (isInitialized) {
+                m_navigationManager.getAudioPlayer().setDelegate(player);
+            }
+            keepScreenOn();
         }
     }
 
@@ -1829,6 +1856,7 @@ public class NavigationView implements Map.OnTransformListener {
          * found in HERE Android SDK API doc
          */
         m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW);
+        m_navigationManager.setSpeedWarningEnabled(false);
 
     }
 
@@ -2118,9 +2146,11 @@ public class NavigationView implements Map.OnTransformListener {
 
     public void keepScreenOn() {
         activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
     }
 
     public void dontKeepScreenOn() {
         activity.getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
     }
 }

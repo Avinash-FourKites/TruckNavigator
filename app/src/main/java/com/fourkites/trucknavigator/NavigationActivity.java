@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.speech.tts.TextToSpeech;
@@ -56,6 +57,7 @@ public class NavigationActivity extends AppCompatActivity {
     private boolean isTtsEnabled = false;
     private final static int REQUEST_CODE_ASK_PERMISSIONS = 1;
     private final String TAG = "LOCATION MODE";
+    private final String ACTIVITY_TAG = "lifecycle";
     private ArrayList<Stop> points;
     private SelectedRoute selectedRoute;
     private boolean directionsState;
@@ -72,10 +74,15 @@ public class NavigationActivity extends AppCompatActivity {
     private Button getStarted;
     private LinearLayout appLayout;
     private RelativeLayout splashLayout;
+    //private Bundle savedState;
+    private Bundle savedInstanceState;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         super.onCreate(savedInstanceState);
+        Log.i(ACTIVITY_TAG, "onCreate: ");
         Fabric.with(this, new Crashlytics());
         gpsInfoReceiver = new GpsInfoReceiver();
 
@@ -87,6 +94,7 @@ public class NavigationActivity extends AppCompatActivity {
 
         //Restoring the data during Activity Restart
         if (savedInstanceState != null) {
+            //savedState = savedInstanceState.getBundle("savedState");
             restoreDataWhenActivityRestarts(savedInstanceState);
         }
 
@@ -94,6 +102,19 @@ public class NavigationActivity extends AppCompatActivity {
         initTTS();
 
         showHomeScreen();
+    }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showHomeScreen() {
@@ -147,7 +168,7 @@ public class NavigationActivity extends AppCompatActivity {
         mainViewState = savedInstanceState.getBoolean("mainViewState");
         routeViewState = savedInstanceState.getBoolean("routeViewState");
 
-        if(mainViewState){
+        if (mainViewState) {
             appLayout.setVisibility(View.VISIBLE);
             splashLayout.setVisibility(View.GONE);
         } else {
@@ -155,6 +176,7 @@ public class NavigationActivity extends AppCompatActivity {
             splashLayout.setVisibility(View.VISIBLE);
         }
     }
+
 
     private void initTTS() {
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -182,6 +204,8 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        Log.i(ACTIVITY_TAG, "onResume: ");
+
         LocalBroadcastManager.getInstance(this).registerReceiver(gpsInfoReceiver, new IntentFilter("GPS_INFO_UPDATE_ALERT"));
         if (navigationView != null && Navigator.navigationMode)
             navigationView.keepScreenOn();
@@ -190,8 +214,8 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(gpsInfoReceiver);
-        if (navigationView != null)
-            navigationView.dontKeepScreenOn();
+        Log.i(ACTIVITY_TAG, "onPause: ");
+
         super.onPause();
     }
 
@@ -204,16 +228,27 @@ public class NavigationActivity extends AppCompatActivity {
                 outState.putParcelableArrayList("waypoints", navigationView.getWaypoints());
             if (navigationView.getSelectedRoute() != null)
                 outState.putParcelable("route", navigationView.getSelectedRoute());
-            outState.putBoolean("directionsState", navigationView.getCreateRoute().getVisibility() == View.VISIBLE);
-            outState.putBoolean("startState", navigationView.getStart().getVisibility() == View.VISIBLE);
-            outState.putBoolean("stopState", navigationView.getStop().getVisibility() == View.VISIBLE);
-            outState.putBoolean("toolbarState", navigationView.getToolbar().getVisibility() == View.VISIBLE);
-            outState.putBoolean("navigationBarState", navigationView.getNavigationBar().getVisibility() == View.VISIBLE);
-            outState.putBoolean("controlsState", navigationView.getControls().getVisibility() == View.VISIBLE);
-            outState.putBoolean("schemeSwitchState", navigationView.getSchemeSwitch().getVisibility() == View.VISIBLE);
-            outState.putBoolean("popUpLayoutState", navigationView.getPopUpLayout().getVisibility() == View.VISIBLE);
-            outState.putBoolean("mainViewState", appLayout.getVisibility() == View.VISIBLE);
-            outState.putBoolean("routeViewState", navigationView.getRouteDetailsLayout().getVisibility() == View.VISIBLE);
+            if (navigationView.getCreateRoute() != null)
+                outState.putBoolean("directionsState", navigationView.getCreateRoute().getVisibility() == View.VISIBLE);
+            if (navigationView.getStart() != null)
+                outState.putBoolean("startState", navigationView.getStart().getVisibility() == View.VISIBLE);
+            if (navigationView.getStop() != null)
+                outState.putBoolean("stopState", navigationView.getStop().getVisibility() == View.VISIBLE);
+            if (navigationView.getToolbar() != null)
+                outState.putBoolean("toolbarState", navigationView.getToolbar().getVisibility() == View.VISIBLE);
+            if (navigationView.getNavigationBar() != null)
+                outState.putBoolean("navigationBarState", navigationView.getNavigationBar().getVisibility() == View.VISIBLE);
+            if (navigationView.getControls() != null)
+                outState.putBoolean("controlsState", navigationView.getControls().getVisibility() == View.VISIBLE);
+            if (navigationView.getSchemeSwitch() != null)
+                outState.putBoolean("schemeSwitchState", navigationView.getSchemeSwitch().getVisibility() == View.VISIBLE);
+            if (navigationView.getPopUpLayout() != null)
+                outState.putBoolean("popUpLayoutState", navigationView.getPopUpLayout().getVisibility() == View.VISIBLE);
+            if (appLayout != null)
+                outState.putBoolean("mainViewState", appLayout.getVisibility() == View.VISIBLE);
+            if (navigationView.getRouteDetailsLayout() != null)
+                outState.putBoolean("routeViewState", navigationView.getRouteDetailsLayout().getVisibility() == View.VISIBLE);
+            //outState.putBundle("savedState", savedState);
         }
     }
 
@@ -349,6 +384,10 @@ public class NavigationActivity extends AppCompatActivity {
         }
     }
 
+    public Activity getActivityInstance() {
+        return NavigationActivity.this;
+    }
+
     @Override
     public void onBackPressed() {
         if (Navigator.navigationMode)
@@ -449,6 +488,8 @@ public class NavigationActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (tts != null)
             tts.shutdown();
+
+        Log.i(ACTIVITY_TAG, "onDestroy: ");
         super.onDestroy();
     }
 }

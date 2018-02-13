@@ -96,10 +96,12 @@ public class AutoSuggestAdapter extends RecyclerView.Adapter {
 
                 ArrayList<Stop> waypoints = navigationView.getWaypoints();
                 if (waypoints != null) {
-                    for (Stop sp : waypoints) {
-                        if (sp != null && sp.getGeoCoordinate() != null ) {
+                    for (int i = 0; i < waypoints.size(); i++) /*(Stop sp : waypoints)*/ {
+                        Stop sp = waypoints.get(i);
+                        if (sp != null && sp.getGeoCoordinate() != null) {
                             if ((sp.getGeoCoordinate().getLatitude() == suggestion.getPosition().get(0)) && (sp.getGeoCoordinate().getLongitude() == suggestion.getPosition().get(1))) {
-                                isDuplicate = true;
+                                if (waypoints.size() > 2 && i == 0)
+                                    isDuplicate = true;
                                 break;
                             }
                         }
