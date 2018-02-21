@@ -2,6 +2,9 @@ package com.fourkites.trucknavigator;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,6 +18,7 @@ import android.os.CountDownTimer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -74,14 +78,15 @@ public class NavigationActivity extends AppCompatActivity {
     private Button getStarted;
     private LinearLayout appLayout;
     private RelativeLayout splashLayout;
-    //private Bundle savedState;
-    private Bundle savedInstanceState;
+    private Bundle savedState;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         super.onCreate(savedInstanceState);
+        overridePendingTransition(0,0);
+
         Log.i(ACTIVITY_TAG, "onCreate: ");
         Fabric.with(this, new Crashlytics());
         gpsInfoReceiver = new GpsInfoReceiver();
@@ -104,6 +109,20 @@ public class NavigationActivity extends AppCompatActivity {
         showHomeScreen();
     }
 
+   /* private void addNavigationFragment() {
+
+        // find the retained fragment on activity restarts
+        FragmentManager fm = getFragmentManager();
+        navigationFragment = (NavigationFragment) fm.findFragmentByTag("FRAG");
+
+        if(navigationFragment == null){
+            navigationFragment = NavigationFragment.newInstance();
+            fm.beginTransaction().add(root.getId(), navigationFragment, "FRAG").commit();
+        }
+        //
+
+    }*/
+
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -112,7 +131,7 @@ public class NavigationActivity extends AppCompatActivity {
         // Checks the orientation of the screen
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
         }
     }
@@ -177,6 +196,18 @@ public class NavigationActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        savedState = savedInstanceState;
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        if (savedState != null)
+            restoreDataWhenActivityRestarts(savedState);
+    }
 
     private void initTTS() {
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -205,7 +236,7 @@ public class NavigationActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         Log.i(ACTIVITY_TAG, "onResume: ");
-
+        cancelOngoingNotification();
         LocalBroadcastManager.getInstance(this).registerReceiver(gpsInfoReceiver, new IntentFilter("GPS_INFO_UPDATE_ALERT"));
         if (navigationView != null && Navigator.navigationMode)
             navigationView.keepScreenOn();
@@ -215,7 +246,7 @@ public class NavigationActivity extends AppCompatActivity {
     public void onPause() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(gpsInfoReceiver);
         Log.i(ACTIVITY_TAG, "onPause: ");
-
+        setNotification();
         super.onPause();
     }
 
@@ -492,4 +523,33 @@ public class NavigationActivity extends AppCompatActivity {
         Log.i(ACTIVITY_TAG, "onDestroy: ");
         super.onDestroy();
     }
+
+    public void setNotification() {
+        PendingIntent contentIntent;
+        Intent intent = new Intent(this, NavigationActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        contentIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+        NotificationManager mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+
+                        .setOngoing(true)
+                        .setAutoCancel(false)
+                        .setContentText("Tracking your active load.");
+        mBuilder.setContentIntent(contentIntent);
+        mNotificationManager.notify(100, mBuilder.build());
+
+       /* Notification notification = mBuilder.build();
+        startForeground(100, notification); //NOTIFICATION_ID is a random integer value which has to be unique in an app*/
+    }
+
+    public void cancelOngoingNotification() {
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(100);
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.fourkites.trucknavigator;
 
 import android.app.Application;
+import android.view.WindowManager;
 
 import com.crashlytics.android.Crashlytics;
 

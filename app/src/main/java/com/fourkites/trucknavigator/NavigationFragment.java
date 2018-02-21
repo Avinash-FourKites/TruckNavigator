@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
@@ -22,6 +23,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.fourkites.trucknavigator.pojos.SelectedRoute;
+import com.fourkites.trucknavigator.pojos.Stop;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -47,6 +50,18 @@ public class NavigationFragment extends Fragment {
     private boolean isTtsEnabled = false;
     private final static int REQUEST_CODE_ASK_PERMISSIONS = 1;
     private GpsInfoReceiver gpsInfoReceiver;
+    private ArrayList<Stop> points;
+    private SelectedRoute selectedRoute;
+    private boolean directionsState;
+    private boolean startState;
+    private boolean stopState;
+    private boolean toolbarState;
+    private boolean navigationBarState;
+    private boolean controlsState;
+    private boolean schemeSwitchState;
+    private boolean popUpLayoutState;
+    private boolean mainViewState;
+    private boolean routeViewState;
 
     private final String TAG = "LOCATION MODE";
 
@@ -68,6 +83,16 @@ public class NavigationFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+        // Initialize Text to Speech Engine
+        initTTS();
+
+
+        //Restoring the data during Activity Restart
+        if (savedInstanceState != null) {
+            //savedState = savedInstanceState.getBundle("savedState");
+            restoreDataWhenActivityRestarts(savedInstanceState);
+        }
         if (getArguments() != null) {
            /* mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);*/
@@ -85,12 +110,66 @@ public class NavigationFragment extends Fragment {
         getStarted = view.findViewById(R.id.start_button);
         gpsInfoReceiver = new GpsInfoReceiver();
 
-        // Initialize Text to Speech Engine
-        initTTS();
 
-        showHomeScreen();
+        //showHomeScreen();
 
         return view;
+    }
+
+    private void restoreDataWhenActivityRestarts(Bundle savedInstanceState) {
+        points = savedInstanceState.getParcelableArrayList("waypoints");
+        selectedRoute = savedInstanceState.getParcelable("route");
+        directionsState = savedInstanceState.getBoolean("directionsState");
+        startState = savedInstanceState.getBoolean("startState");
+        stopState = savedInstanceState.getBoolean("stopState");
+        toolbarState = savedInstanceState.getBoolean("toolbarState");
+        navigationBarState = savedInstanceState.getBoolean("navigationBarState");
+        controlsState = savedInstanceState.getBoolean("controlsState");
+        schemeSwitchState = savedInstanceState.getBoolean("schemeSwitchState");
+        popUpLayoutState = savedInstanceState.getBoolean("popUpLayoutState");
+        mainViewState = savedInstanceState.getBoolean("mainViewState");
+        routeViewState = savedInstanceState.getBoolean("routeViewState");
+
+        if (mainViewState) {
+            appLayout.setVisibility(View.VISIBLE);
+            splashLayout.setVisibility(View.GONE);
+        } else {
+            appLayout.setVisibility(View.GONE);
+            splashLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (navigationView != null) {
+            if (navigationView.getWaypoints() != null)
+                outState.putParcelableArrayList("waypoints", navigationView.getWaypoints());
+            if (navigationView.getSelectedRoute() != null)
+                outState.putParcelable("route", navigationView.getSelectedRoute());
+            if (navigationView.getCreateRoute() != null)
+                outState.putBoolean("directionsState", navigationView.getCreateRoute().getVisibility() == View.VISIBLE);
+            if (navigationView.getStart() != null)
+                outState.putBoolean("startState", navigationView.getStart().getVisibility() == View.VISIBLE);
+            if (navigationView.getStop() != null)
+                outState.putBoolean("stopState", navigationView.getStop().getVisibility() == View.VISIBLE);
+            if (navigationView.getToolbar() != null)
+                outState.putBoolean("toolbarState", navigationView.getToolbar().getVisibility() == View.VISIBLE);
+            if (navigationView.getNavigationBar() != null)
+                outState.putBoolean("navigationBarState", navigationView.getNavigationBar().getVisibility() == View.VISIBLE);
+            if (navigationView.getControls() != null)
+                outState.putBoolean("controlsState", navigationView.getControls().getVisibility() == View.VISIBLE);
+            if (navigationView.getSchemeSwitch() != null)
+                outState.putBoolean("schemeSwitchState", navigationView.getSchemeSwitch().getVisibility() == View.VISIBLE);
+            if (navigationView.getPopUpLayout() != null)
+                outState.putBoolean("popUpLayoutState", navigationView.getPopUpLayout().getVisibility() == View.VISIBLE);
+            if (appLayout != null)
+                outState.putBoolean("mainViewState", appLayout.getVisibility() == View.VISIBLE);
+            if (navigationView.getRouteDetailsLayout() != null)
+                outState.putBoolean("routeViewState", navigationView.getRouteDetailsLayout().getVisibility() == View.VISIBLE);
+            //outState.putBundle("savedState", savedState);
+        }
     }
 
     private void initTTS() {
@@ -148,7 +227,11 @@ public class NavigationFragment extends Fragment {
         requiredSDKPermissions.add(android.Manifest.permission.ACCESS_WIFI_STATE);
         requiredSDKPermissions.add(android.Manifest.permission.ACCESS_NETWORK_STATE);
 
-        ActivityCompat.requestPermissions(getActivity(),requiredSDKPermissions.toArray(new String[requiredSDKPermissions.size()]), REQUEST_CODE_ASK_PERMISSIONS);
+        if (Build.VERSION.SDK_INT < 23) {
+            ActivityCompat.requestPermissions(getActivity(), requiredSDKPermissions.toArray(new String[requiredSDKPermissions.size()]), REQUEST_CODE_ASK_PERMISSIONS);
+        } else
+            requestPermissions(requiredSDKPermissions.toArray(new String[requiredSDKPermissions.size()]), REQUEST_CODE_ASK_PERMISSIONS);
+
     }
 
     @Override
@@ -279,5 +362,12 @@ public class NavigationFragment extends Fragment {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(tts != null)
+            tts.shutdown();
     }
 }
