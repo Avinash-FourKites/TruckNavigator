@@ -678,7 +678,7 @@ public class NavigationView implements Map.OnTransformListener {
                 iconLayout.setVisibility(View.VISIBLE);
             } else {
                 getNavigationBar().setVisibility(View.GONE);
-                iconLayout.setVisibility(View.GONE);
+                iconLayout.setVisibility(View.INVISIBLE);
             }
 
 
@@ -1692,7 +1692,7 @@ public class NavigationView implements Map.OnTransformListener {
         totalDistance.setText("");
         distanceCovered.setText("0");
         navigationBar.setVisibility(View.GONE);
-        iconLayout.setVisibility(View.GONE);
+        iconLayout.setVisibility(View.INVISIBLE);
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         layoutParams.addRule(RelativeLayout.BELOW, R.id.relativeLayout2);
         stopsView.setLayoutParams(layoutParams);

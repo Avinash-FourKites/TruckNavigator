@@ -16,9 +16,9 @@
             android:id="@+id/mapFragmentContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignEnd="@+id/controls"
-            android:layout_alignParentTop="true"
-            android:layout_alignRight="@+id/controls" >
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true">
 
         </FrameLayout>
 
@@ -307,10 +307,15 @@
 
         <RelativeLayout
             android:id="@+id/navigationBar"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/colorPrimaryDark"
             android:layout_alignParentTop="true"
+            android:layout_toEndOf="@+id/routesLayout"
+            android:layout_toLeftOf="@+id/iconLayout"
+            android:layout_toRightOf="@+id/routesLayout"
+            android:layout_toStartOf="@+id/iconLayout"
+            android:background="@color/colorPrimaryDark"
+            android:layout_marginRight="10dp"
             android:padding="5dp"
             android:visibility="gone">
 
@@ -325,18 +330,20 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
 
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Remaining Distance : "
+                        android:textStyle="bold"
                         android:textColor="@android:color/white" />
 
                     <TextView
                         android:id="@+id/distanceCovered"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:maxLines="3"
                         android:text="0"
                         android:textColor="@android:color/white" />
 
@@ -352,6 +359,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
+                        android:maxLines="3"
                         android:textColor="@android:color/white"
                         android:visibility="gone" />
                 </LinearLayout>
@@ -359,18 +367,20 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Will reach by : "
+                        android:textStyle="bold"
                         android:textColor="@android:color/white" />
 
                     <TextView
                         android:id="@+id/eta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:maxLines="3"
                         android:text=""
                         android:textColor="@android:color/white" />
                 </LinearLayout>
@@ -389,7 +399,7 @@
             android:layout_centerVertical="true"
             android:layout_alignParentTop="true"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:visibility="invisible">
 
             <ImageView
                 android:id="@+id/manuverIcon"
