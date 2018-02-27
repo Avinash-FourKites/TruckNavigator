@@ -17,13 +17,13 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.here.android.maps.appid"
-            android:value="9n0udvLjYuhRQeXIFOsY" />
+            android:value="ovQXski53UbdvXr8GTeP" />
         <meta-data
             android:name="com.here.android.maps.apptoken"
-            android:value="9n0udvLjYuhRQeXIFOsY" />
+            android:value="K-M7sT1z7xzHj0RYagnxwQ" />
         <meta-data
             android:name="com.here.android.maps.license.key"
-            android:value="Dn736m8t5kNJnUM3K+5KVzCdoIVP2nBImTPd3+5U2wmgeH2zIOJ2PegG56yaFWh/sYdKpE5bMMjdJnnzudE0/OpObmery2acRyfVJFqTTec2kxDoai2YagP2eJJTPYBEOEOZ8EI97fbveUQ2JF4tuTbuCc05HR2Sc8mQifeEa2Pfz2oYt/1sTYoJFwMkl0dj6qEKSlhC0w3+Tze4J3hOvIQphzjS5qrgazFPOkk41i9p8RBWSOz2gvboTfsbJ/3druI5ZjBYgGa/v4PuOLcm6ykX+2c+TphBZOMA3qFoxl+7BxDZXocWl1tI8AgX/91tZgbSQ13mJHxhR81hZ2WtkwqP1HkDah/83mOOBIKsY7jE/alMPrcfuWfeVeRpQQ/giUHIXilzrtSMkHaWUXj0DepperHR+1GdZfqsFp9aN6VVM1gvoKu309e2IrwDi4wT3ONGExYvCCZWgVB3Iz9x/JqgriiQE73Ze+u+XvDOhPv0ayrrdnwEd/04NTdgxIVsDnrYQXJQT5Zm8fVeW+E8so1WvFCnZW7LuWmhYeJXItTq3SxNuopZhdQLHh4MaFRc5EIolui6E517P9yAZQdO+YCjon+KyuI/x7JhCr/qQFuS1CVdFJSdWMuFnx64RLl1Eb3AU1bKwNuRjcV7SMGHOMOqRo3a0D2f/Y2wjk10bS0=" />
+            android:value="JN0BuEHNWxZ/4WFBMHOttQcH9IQmq9iFu25QhTuwgKW2Scat4Z2YRfx+eMEsoQdwfnapahwczme0gs06cjipkX6cDFVG3UG5pyqkdAUFoBc9rmn0BqFM7XdytnQYU0jL6Has2MZbdFsaPu1boq0e3x0SX7tBbQCh1El7FlWyEOdmsG0Elf9QJIKwSOMOMOeE6CEfxi1LZEzyskf16/xnH2u5zZ4pfDTgVZZO3SeLPa9/wtXCxOq/ga7B7oEJpa2k982ZVRreAcP+VrJqTfevz8/hbsRUEzsUwt3wtDK8mAuruzTN/m/aJR07T4U7M4b+sfqS3gbmRmmzNu5T5whBRE0QUcVw53FAlOpXUODWxsISp9pK+nsMxbcIDe4u1ie1Xwj2gB/RZOR/ZAd61gszLsWNlUOw0+o6tHoUDPtLA9TUCDDgioD9RFPdJ3MdWX5C96hGbJE51/kwWA65Mxj6JHt0e7yZTujt1EUaHnSI3ntl4kOJh/dRwZrRGfrzlVCKR4XE9+Ko4d6PZIF675y6dsKt/Sm7zmWPKPKIvR0ZDa8+sdugWM/RYa8zYbq7M4OUI60BbjXTgbygzBNtjSqNHPs2J3VKw0t79grjX5B8Ai0lotKIQ+QlYRkN3HP9BLnlyqZhyWyo/ybEcmf24WRN/1IciTnQR+cJAXqT851Q5Sc=" />
 
         <receiver android:name=".receiver.LocationSettingChangedReceiver">
             <intent-filter>
