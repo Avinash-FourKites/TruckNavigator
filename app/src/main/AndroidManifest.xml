@@ -17,13 +17,13 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.here.android.maps.appid"
-            android:value="ovQXski53UbdvXr8GTeP" />
+            android:value="@string/app_id" />
         <meta-data
             android:name="com.here.android.maps.apptoken"
-            android:value="K-M7sT1z7xzHj0RYagnxwQ" />
+            android:value="@string/app_code" />
         <meta-data
             android:name="com.here.android.maps.license.key"
-            android:value="JN0BuEHNWxZ/4WFBMHOttQcH9IQmq9iFu25QhTuwgKW2Scat4Z2YRfx+eMEsoQdwfnapahwczme0gs06cjipkX6cDFVG3UG5pyqkdAUFoBc9rmn0BqFM7XdytnQYU0jL6Has2MZbdFsaPu1boq0e3x0SX7tBbQCh1El7FlWyEOdmsG0Elf9QJIKwSOMOMOeE6CEfxi1LZEzyskf16/xnH2u5zZ4pfDTgVZZO3SeLPa9/wtXCxOq/ga7B7oEJpa2k982ZVRreAcP+VrJqTfevz8/hbsRUEzsUwt3wtDK8mAuruzTN/m/aJR07T4U7M4b+sfqS3gbmRmmzNu5T5whBRE0QUcVw53FAlOpXUODWxsISp9pK+nsMxbcIDe4u1ie1Xwj2gB/RZOR/ZAd61gszLsWNlUOw0+o6tHoUDPtLA9TUCDDgioD9RFPdJ3MdWX5C96hGbJE51/kwWA65Mxj6JHt0e7yZTujt1EUaHnSI3ntl4kOJh/dRwZrRGfrzlVCKR4XE9+Ko4d6PZIF675y6dsKt/Sm7zmWPKPKIvR0ZDa8+sdugWM/RYa8zYbq7M4OUI60BbjXTgbygzBNtjSqNHPs2J3VKw0t79grjX5B8Ai0lotKIQ+QlYRkN3HP9BLnlyqZhyWyo/ybEcmf24WRN/1IciTnQR+cJAXqT851Q5Sc=" />
+            android:value="@string/license" />
 
         <receiver android:name=".receiver.LocationSettingChangedReceiver">
             <intent-filter>

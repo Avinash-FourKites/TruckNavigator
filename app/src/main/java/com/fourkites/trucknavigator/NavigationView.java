@@ -100,6 +100,7 @@ import com.here.android.mpa.search.ReverseGeocodeRequest2;
 import org.jsoup.Jsoup;
 
 import java.lang.ref.WeakReference;
+import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -817,11 +818,7 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void suggesstionsRequest(final Stop stop, String query) {
-       /* if (stop.getAddress() != null && !stop.getAddress().isEmpty())
-            query = stop.getAddress();*/
-
-
-        String url = "https://places.api.here.com/places/v1/autosuggest?X-Map-Viewport=-76.5633,81.2945,102.7335,90.0000&app_code=K2Cpd_EKDzrZb1tz0zdpeQ&app_id=bC4fb9WQfCCZfkxspD4z&q=" + query + "&result_types=address,place,category,chain&size=10";
+        String url = "https://places.api.here.com/places/v1/autosuggest?X-Map-Viewport=83.1559,-60.2904,81.9584,90&app_code=K-M7sT1z7xzHj0RYagnxwQ&app_id=ovQXski53UbdvXr8GTeP&q=" + URLEncoder.encode(query) + "&result_types=address,place,category,chain&size=10";
         StringRequest getAutoSuggestRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -848,7 +845,6 @@ public class NavigationView implements Map.OnTransformListener {
                             searchResults.add(result);
                         }
 
-
                         searchResults.addAll(results.getResults());
 
                         if (autoSuggestAdapter == null) {
@@ -866,7 +862,6 @@ public class NavigationView implements Map.OnTransformListener {
                         //no search results
                         showToast("No suggestions");
                     }
-
                 }
             }
         }, new Response.ErrorListener() {
@@ -874,6 +869,9 @@ public class NavigationView implements Map.OnTransformListener {
             public void onErrorResponse(VolleyError error) {
                 if ((error instanceof NetworkError) || (error instanceof NoConnectionError))
                     showToast("Please check your network connection.");
+                else if (error.getMessage() != null)
+                    showToast(error.getMessage() + ".");
+
                 suggestLoader.setVisibility(View.GONE);
             }
         });
