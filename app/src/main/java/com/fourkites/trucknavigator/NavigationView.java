@@ -310,13 +310,13 @@ public class NavigationView implements Map.OnTransformListener {
 
     private void addListeners() {
 
-        toolbarTitle.setOnClickListener(new View.OnClickListener() {
+        /*toolbarTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Navigator.simulate = !Navigator.simulate;
                 showSimulationHint();
             }
-        });
+        });*/
 
         routesBack.setOnClickListener(new View.OnClickListener() {
             @Override
