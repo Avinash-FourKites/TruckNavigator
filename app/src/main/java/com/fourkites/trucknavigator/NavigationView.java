@@ -29,6 +29,8 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -41,6 +43,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -54,6 +58,7 @@ import com.fourkites.trucknavigator.pojos.Result;
 import com.fourkites.trucknavigator.pojos.SearchResults;
 import com.fourkites.trucknavigator.pojos.SelectedRoute;
 import com.fourkites.trucknavigator.pojos.Stop;
+import com.fourkites.trucknavigator.utils.LocationUtil;
 import com.google.gson.Gson;
 import com.here.android.mpa.common.ApplicationContext;
 import com.here.android.mpa.common.GeoBoundingBox;
@@ -76,6 +81,7 @@ import com.here.android.mpa.mapping.MapRoute;
 import com.here.android.mpa.mapping.MapState;
 import com.here.android.mpa.mapping.MapTrafficLayer;
 import com.here.android.mpa.mapping.MapTransitLayer;
+import com.here.android.mpa.mapping.OnMapRenderListener;
 import com.here.android.mpa.mapping.PositionIndicator;
 import com.here.android.mpa.routing.CoreRouter;
 import com.here.android.mpa.routing.Maneuver;
@@ -94,9 +100,12 @@ import com.here.android.mpa.search.ReverseGeocodeRequest2;
 import org.jsoup.Jsoup;
 
 import java.lang.ref.WeakReference;
+import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -106,7 +115,7 @@ import java.util.List;
 public class NavigationView implements Map.OnTransformListener {
 
     private MapFragment mapFragment;
-    private Activity activity;
+    public Activity activity;
     private Button m_naviControlButton;
     private static Map map;
     private NavigationManager m_navigationManager;
@@ -148,12 +157,13 @@ public class NavigationView implements Map.OnTransformListener {
     private TextView eta;
     private ImageView manuverIcon;
     private TextView distanceOfManeuver;
-    private RelativeLayout navigationBar;
+    private RelativeLayout navigationBar, iconLayout;
     private int totalDistanceVal;
     private RelativeLayout searchLayout;
     private AutoCompleteTextView searchView;
     private Handler handler = new Handler();
     private Runnable run;
+    private Runnable navigationBarUpdateRun;
     private Stop selectedStopForSuggestion;
     private int selectedStopPosition;
     private RequestQueue queue;
@@ -188,6 +198,7 @@ public class NavigationView implements Map.OnTransformListener {
     private RelativeLayout parent;
     private EditText speedForSimulation;
     private final double MILES_CONVERSION = 1609.344;
+    private Calendar calendar;
 
 
     public NavigationView(Activity activity, boolean isTtsEnabled, TextToSpeech tts) {
@@ -199,6 +210,7 @@ public class NavigationView implements Map.OnTransformListener {
         searchResults = new ArrayList<>();
         queue = Volley.newRequestQueue(activity);
         selectedRoute = new SelectedRoute();
+        calendar = Calendar.getInstance();
         settingUpUI();
     }
 
@@ -212,6 +224,7 @@ public class NavigationView implements Map.OnTransformListener {
         queue = Volley.newRequestQueue(activity);
         this.selectedRoute = selectedRoute;
         m_route = selectedRoute.getM_route();
+
         settingUpUI();
     }
 
@@ -228,6 +241,8 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void settingUpUI() {
+        //showProgress("loading...");
+
         initializeView();
         //Setting up stops list view
         setStopsAdapter();
@@ -245,59 +260,63 @@ public class NavigationView implements Map.OnTransformListener {
 
         //Initializing MAPVIEW
         mapFragment = new MapFragment();
-        mapFragmentContainer = (FrameLayout) activity.findViewById(R.id.mapFragmentContainer);
-        activity.getFragmentManager().beginTransaction().add(mapFragmentContainer.getId(), mapFragment, "MAP_TAG1").commit();
-        mapFragment.setRetainInstance(true);
+        if (activity != null) {
+            mapFragmentContainer = (FrameLayout) activity.findViewById(R.id.mapFragmentContainer);
+            activity.getFragmentManager().beginTransaction().add(mapFragmentContainer.getId(), mapFragment, "MAP_TAG1").commit();
+            mapFragment.setRetainInstance(true);
 
-        toolbar = (RelativeLayout) activity.findViewById(R.id.toolbar);
-        start = (FloatingActionButton) activity.findViewById(R.id.startNavigation);
-        createRoute = (FloatingActionButton) activity.findViewById(R.id.createRoute);
-        stop = (FloatingActionButton) activity.findViewById(R.id.stopNavigation);
-        schemeSwitch = (ImageView) activity.findViewById(R.id.schemeSwitch);
-        popUpLayout = (LinearLayout) activity.findViewById(R.id.popUpLayout);
-        mapView = (TextView) activity.findViewById(R.id.navigationView);
-        satellite = (TextView) activity.findViewById(R.id.satellite);
-        terrain = (TextView) activity.findViewById(R.id.terrain);
-        trafficConditions = (TextView) activity.findViewById(R.id.trafficConditions);
-        publicTransport = (TextView) activity.findViewById(R.id.publicTransport);
-        showTrafficIncidents = (TextView) activity.findViewById(R.id.showTrafficIncidents);
-        currentLocation = (ImageView) activity.findViewById(R.id.currentLocation);
-        suggestLoader = (ProgressBar) activity.findViewById(R.id.suggestLoader);
-        distanceCovered = (TextView) activity.findViewById(R.id.distanceCovered);
-        totalDistance = (TextView) activity.findViewById(R.id.totalDistance);
-        eta = (TextView) activity.findViewById(R.id.eta);
-        navigationBar = (RelativeLayout) activity.findViewById(R.id.navigationBar);
-        manuverIcon = (ImageView) activity.findViewById(R.id.manuverIcon);
-        distanceOfManeuver = (TextView) activity.findViewById(R.id.distanceOfManeuver);
-        stopsView = (RecyclerView) activity.findViewById(R.id.stopsView);
-        controls = (LinearLayout) activity.findViewById(R.id.controls);
-        searchLayout = (RelativeLayout) activity.findViewById(R.id.searchLayout);
-        addStop = (ImageView) activity.findViewById(R.id.addStop);
-        back = (ImageView) activity.findViewById(R.id.back);
-        close = (ImageView) activity.findViewById(R.id.remove);
-        searchView = (AutoCompleteTextView) activity.findViewById(R.id.searchView);
-        suggestionView = (RecyclerView) activity.findViewById(R.id.suggestionView);
-        toolbarTitle = (TextView) activity.findViewById(R.id.toolbar_title);
-        routesLayout = (LinearLayout) activity.findViewById(R.id.routesLayout);
-        routesView = (RecyclerView) activity.findViewById(R.id.routesView);
-        routesBack = (ImageView) activity.findViewById(R.id.routesBack);
-        routeDetailsLayout = (LinearLayout) activity.findViewById(R.id.routeDetailsLayout);
-        selectedRouteDistance = (TextView) activity.findViewById(R.id.selectedRouteDistance);
-        selectedRouteEta = (TextView) activity.findViewById(R.id.selectedRouteEta);
-        parent = (RelativeLayout) activity.findViewById(R.id.parent);
-        speedForSimulation = (EditText) activity.findViewById(R.id.speedForSimulation);
+            toolbar = (RelativeLayout) activity.findViewById(R.id.toolbar);
+            start = (FloatingActionButton) activity.findViewById(R.id.startNavigation);
+            createRoute = (FloatingActionButton) activity.findViewById(R.id.createRoute);
+            stop = (FloatingActionButton) activity.findViewById(R.id.stopNavigation);
+            schemeSwitch = (ImageView) activity.findViewById(R.id.schemeSwitch);
+            popUpLayout = (LinearLayout) activity.findViewById(R.id.popUpLayout);
+            mapView = (TextView) activity.findViewById(R.id.navigationView);
+            satellite = (TextView) activity.findViewById(R.id.satellite);
+            terrain = (TextView) activity.findViewById(R.id.terrain);
+            trafficConditions = (TextView) activity.findViewById(R.id.trafficConditions);
+            publicTransport = (TextView) activity.findViewById(R.id.publicTransport);
+            showTrafficIncidents = (TextView) activity.findViewById(R.id.showTrafficIncidents);
+            currentLocation = (ImageView) activity.findViewById(R.id.currentLocation);
+            suggestLoader = (ProgressBar) activity.findViewById(R.id.suggestLoader);
+            distanceCovered = (TextView) activity.findViewById(R.id.distanceCovered);
+            totalDistance = (TextView) activity.findViewById(R.id.totalDistance);
+            eta = (TextView) activity.findViewById(R.id.eta);
+            navigationBar = (RelativeLayout) activity.findViewById(R.id.navigationBar);
+            iconLayout = (RelativeLayout) activity.findViewById(R.id.iconLayout);
+            manuverIcon = (ImageView) activity.findViewById(R.id.manuverIcon);
+            distanceOfManeuver = (TextView) activity.findViewById(R.id.distanceOfManeuver);
+            stopsView = (RecyclerView) activity.findViewById(R.id.stopsView);
+            controls = (LinearLayout) activity.findViewById(R.id.controls);
+            searchLayout = (RelativeLayout) activity.findViewById(R.id.searchLayout);
+            addStop = (ImageView) activity.findViewById(R.id.addStop);
+            back = (ImageView) activity.findViewById(R.id.back);
+            close = (ImageView) activity.findViewById(R.id.remove);
+            searchView = (AutoCompleteTextView) activity.findViewById(R.id.searchView);
+            suggestionView = (RecyclerView) activity.findViewById(R.id.suggestionView);
+            toolbarTitle = (TextView) activity.findViewById(R.id.toolbar_title);
+            routesLayout = (LinearLayout) activity.findViewById(R.id.routesLayout);
+            routesView = (RecyclerView) activity.findViewById(R.id.routesView);
+            routesBack = (ImageView) activity.findViewById(R.id.routesBack);
+            routeDetailsLayout = (LinearLayout) activity.findViewById(R.id.routeDetailsLayout);
+            selectedRouteDistance = (TextView) activity.findViewById(R.id.selectedRouteDistance);
+            selectedRouteEta = (TextView) activity.findViewById(R.id.selectedRouteEta);
+            parent = (RelativeLayout) activity.findViewById(R.id.parent);
+            speedForSimulation = (EditText) activity.findViewById(R.id.speedForSimulation);
+        } else {
+            throw new NullPointerException("Activity null");
+        }
     }
 
     private void addListeners() {
 
-        toolbarTitle.setOnClickListener(new View.OnClickListener() {
+        /*toolbarTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Navigator.simulate = !Navigator.simulate;
                 showSimulationHint();
-
             }
-        });
+        });*/
 
         routesBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -322,7 +341,7 @@ public class NavigationView implements Map.OnTransformListener {
             @Override
             public void onClick(View v) {
                 Navigator.navigationMode = true;
-                ((NavigationActivity) activity).showLogoutWarning(true);
+                ((NavigationActivity) activity).showLogoutWarning(true, "Are you sure you want to exit the current navigation?", false);
             }
         });
 
@@ -337,7 +356,10 @@ public class NavigationView implements Map.OnTransformListener {
             @Override
             public void onClick(View v) {
                 try {
-                    getCurrentTrack();
+                    if (LocationUtil.isGpsEnabled(activity))
+                        getCurrentTrack();
+                    else
+                        showToast("Please turn on the location services.");
                 } catch (NullPointerException e) {
                 }
             }
@@ -365,6 +387,8 @@ public class NavigationView implements Map.OnTransformListener {
             @Override
             public void onClick(View v) {
                 searchLayout.setVisibility(View.GONE);
+                softCloseKeyboard();
+                showDirections();
             }
         });
 
@@ -377,6 +401,8 @@ public class NavigationView implements Map.OnTransformListener {
 
         //SearchView
         searchView.setThreshold(3);
+
+        searchView.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
 
         searchView.addTextChangedListener(new TextWatcher() {
             @Override
@@ -391,8 +417,6 @@ public class NavigationView implements Map.OnTransformListener {
 
                         if (searchView.getText().toString().length() >= 3) {
                             suggestLoader.setVisibility(View.VISIBLE);
-                            //String text = s.toString();
-                            //final String txt = text;
                             handler.removeCallbacks(run);
 
                             run = new Runnable() {
@@ -401,7 +425,7 @@ public class NavigationView implements Map.OnTransformListener {
                                     suggesstionsRequest(selectedStopForSuggestion, s.toString().trim());
                                 }
                             };
-                            handler.postDelayed(run, 0);
+                            handler.postDelayed(run, 1000);
                         }
                     } else {
                         searchView.clearFocus();
@@ -416,12 +440,19 @@ public class NavigationView implements Map.OnTransformListener {
 
     }
 
+    private void softCloseKeyboard() {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null)
+            imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
+    }
+
     public void getCurrentTrack() {
         if (m_navigationManager != null)
             m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW);
 
         if (!Navigator.navigationMode)
             getCurrentPosition();
+
     }
 
     private void setStopsAdapter() {
@@ -434,119 +465,154 @@ public class NavigationView implements Map.OnTransformListener {
     private void initializeMapFragment() {
           /* Initialize the MapFragment, results will be given via the called back. */
         if (mapFragment != null) {
-            ApplicationContext context = new ApplicationContext(activity);
+            final ApplicationContext context = new ApplicationContext(activity);
             mapFragment.init(context, new OnEngineInitListener() {
+
                 @Override
                 public void onEngineInitializationCompleted(Error error) {
 
                     if (error == Error.NONE) {
+
                         map = mapFragment.getMap();
+                        if (map != null) {
+                            mapFragment.addOnMapRenderListener(new OnMapRenderListener() {
+                                @Override
+                                public void onPreDraw() {
 
-                        mapFragment.getMapGesture().addOnGestureListener(new MapGesture.OnGestureListener() {
-                            @Override
-                            public void onPanStart() {
-                                allowZoomOnMapGesture();
-                            }
+                                }
 
-                            @Override
-                            public void onPanEnd() {
-                                allowZoomOnMapGesture();
-                            }
+                                @Override
+                                public void onPostDraw(boolean b, long l) {
+                                    //Log.d("mapView", "onPostDraw: " + b + "  long " + l);
+                                }
 
-                            @Override
-                            public void onMultiFingerManipulationStart() {
-                                allowZoomOnMapGesture();
-                            }
+                                @Override
+                                public void onSizeChanged(int i, int i1) {
 
-                            @Override
-                            public void onMultiFingerManipulationEnd() {
-                                allowZoomOnMapGesture();
-                            }
+                                }
 
-                            @Override
-                            public boolean onMapObjectsSelected(List<ViewObject> list) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public void onGraphicsDetached() {
 
-                            @Override
-                            public boolean onTapEvent(PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                }
 
-                            @Override
-                            public boolean onDoubleTapEvent(PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public void onRenderBufferCreated() {
+                                }
+                            });
 
-                            @Override
-                            public void onPinchLocked() {
-                                allowZoomOnMapGesture();
-                            }
+                            mapFragment.getMapGesture().addOnGestureListener(new MapGesture.OnGestureListener() {
+                                @Override
+                                public void onPanStart() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                            @Override
-                            public boolean onPinchZoomEvent(float v, PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public void onPanEnd() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                            @Override
-                            public void onRotateLocked() {
-                                allowZoomOnMapGesture();
-                            }
+                                @Override
+                                public void onMultiFingerManipulationStart() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                            @Override
-                            public boolean onRotateEvent(float v) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public void onMultiFingerManipulationEnd() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                            @Override
-                            public boolean onTiltEvent(float v) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public boolean onMapObjectsSelected(List<ViewObject> list) {
+                                    allowZoomOnMapGesture();
+                                    for (ViewObject viewObject : list) {
+                                        if (viewObject instanceof MapMarker) {
+                                            ((MapMarker) viewObject).showInfoBubble();
+                                            break;
+                                        }
+                                    }
+                                    return false;
+                                }
 
-                            @Override
-                            public boolean onLongPressEvent(PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
+                                @Override
+                                public boolean onTapEvent(PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
 
-                            @Override
-                            public void onLongPressRelease() {
-                                allowZoomOnMapGesture();
+                                @Override
+                                public boolean onDoubleTapEvent(PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
 
-                            }
+                                @Override
+                                public void onPinchLocked() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                            @Override
-                            public boolean onTwoFingerTapEvent(PointF pointF) {
-                                allowZoomOnMapGesture();
-                                return false;
-                            }
-                        });
-                        map.setCenter(new GeoCoordinate(41.878332, -87.629789), Map.Animation.BOW);
-                        positioningManager = PositioningManager.getInstance();
-                        if (waypoints.size() < 1)
-                            getCurrentPosition();
+                                @Override
+                                public boolean onPinchZoomEvent(float v, PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
 
-                        if (m_navigationManager == null)
-                            m_navigationManager = NavigationManager.getInstance();
-                        m_navigationManager.setMap(map);
+                                @Override
+                                public void onRotateLocked() {
+                                    allowZoomOnMapGesture();
+                                }
 
-                        /*
-                        * NavigationManager contains a number of listeners which we can use to monitor the
-                        * navigation status and getting relevant instructions.In this example, we will add 2
-                        * listeners for demo purpose,please refer to HERE Android SDK API documentation for details
-                        */
-                        addNavigationListeners();
+                                @Override
+                                public boolean onRotateEvent(float v) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
 
-                        addingMapSettings();
+                                @Override
+                                public boolean onTiltEvent(float v) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
 
-                        restoreViewsDuringRestart();
+                                @Override
+                                public boolean onLongPressEvent(PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
 
+                                @Override
+                                public void onLongPressRelease() {
+                                    allowZoomOnMapGesture();
+
+                                }
+
+                                @Override
+                                public boolean onTwoFingerTapEvent(PointF pointF) {
+                                    allowZoomOnMapGesture();
+                                    return false;
+                                }
+                            });
+
+                            positioningManager = PositioningManager.getInstance();
+                            if (waypoints != null && waypoints.size() > 0 && waypoints.get(0).getGeoCoordinate() != null)
+                                map.setCenter(waypoints.get(0).getGeoCoordinate(), Map.Animation.BOW);
+                            else
+                                map.setCenter(new GeoCoordinate(41.878332, -87.629789), Map.Animation.BOW);
+
+
+                            if (waypoints.size() < 1)
+                                getCurrentPosition();
+
+                            if (m_navigationManager == null)
+                                m_navigationManager = NavigationManager.getInstance();
+
+                            m_navigationManager.setMap(map);
+                            m_navigationManager.setDistanceUnit(NavigationManager.UnitSystem.IMPERIAL_US);
+
+                            addingMapSettings();
+
+                            restoreViewsDuringRestart();
+                        }
                     } else {
                         showToast("ERROR: Cannot initialize Map with error " + error);
                     }
@@ -556,12 +622,12 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void addingMapSettings() {
-        EnumSet<Map.PedestrianFeature> set = EnumSet.of(Map.PedestrianFeature.TUNNEL, Map.PedestrianFeature.BRIDGE, Map.PedestrianFeature.CROSSWALK);
-        map.setPedestrianFeaturesVisible(set);
+      /*  EnumSet<Map.PedestrianFeature> set = EnumSet.of(Map.PedestrianFeature.TUNNEL, Map.PedestrianFeature.BRIDGE, Map.PedestrianFeature.CROSSWALK);
+        map.setPedestrianFeaturesVisible(set);*/
         map.setStreetLevelCoverageVisible(true);
         map.setProjectionMode(Map.Projection.MERCATOR);  // globe projection
-        map.setExtrudedBuildingsVisible(true);  // enable 3D building footprints
-        map.setLandmarksVisible(true);  // 3D Landmarks visible
+        map.setExtrudedBuildingsVisible(false);  // enable 3D building footprints
+        map.setLandmarksVisible(false);  // 3D Landmarks visible
         map.setCartoMarkersVisible(IconCategory.ALL, true);  // show embedded map markers
         map.setSafetySpotsVisible(true); // show speed cameras as embedded markers on the map
         map.setMapScheme(Map.Scheme.NORMAL_DAY);   // normal day mapscheme
@@ -585,6 +651,7 @@ public class NavigationView implements Map.OnTransformListener {
             controlsState = ((NavigationActivity) activity).isControlsState();
             schemeSwitchState = ((NavigationActivity) activity).isSchemeSwitchState();
             popUpLayoutState = ((NavigationActivity) activity).isPopUpLayoutState();
+
             if (directionsState)
                 getCreateRoute().setVisibility(View.VISIBLE);
             else
@@ -607,10 +674,13 @@ public class NavigationView implements Map.OnTransformListener {
                 getToolbar().setVisibility(View.GONE);
 
 
-            if (navigationBarState)
+            if (navigationBarState) {
                 getNavigationBar().setVisibility(View.VISIBLE);
-            else
+                iconLayout.setVisibility(View.VISIBLE);
+            } else {
                 getNavigationBar().setVisibility(View.GONE);
+                iconLayout.setVisibility(View.INVISIBLE);
+            }
 
 
             if (controlsState)
@@ -629,6 +699,31 @@ public class NavigationView implements Map.OnTransformListener {
                 getPopUpLayout().setVisibility(View.VISIBLE);
             else
                 getPopUpLayout().setVisibility(View.GONE);
+
+            if (((NavigationActivity) activity).isRouteDetailsLayoutState())
+                getRouteDetailsLayout().setVisibility(View.VISIBLE);
+            else
+                getRouteDetailsLayout().setVisibility(View.GONE);
+
+            if (Navigator.navigationMode) {
+                getStop().setVisibility(View.VISIBLE);
+                getControls().setVisibility(View.VISIBLE);
+                getSchemeSwitch().setVisibility(View.GONE);
+                getNavigationBar().setVisibility(View.VISIBLE);
+            } else {
+                getSchemeSwitch().setVisibility(View.VISIBLE);
+                getControls().setVisibility(View.VISIBLE);
+            }
+
+            handler.removeCallbacks(run);
+
+            run = new Runnable() {
+                public void run() {
+                    //stopViewHolder.loadingCircle.setVisibility(View.VISIBLE);
+                    setToRoadView();
+                }
+            };
+            handler.postDelayed(run, 1200);
         }
     }
 
@@ -653,13 +748,13 @@ public class NavigationView implements Map.OnTransformListener {
         }
 
         if (waypoints != null) {
-            try{
+            try {
                 if (waypoints.size() < 1)
                     waypoints.add(stop);
                 else
                     waypoints.set(pos, stop);
-            } catch (IndexOutOfBoundsException e){
-                if(waypoints.size() == 1)
+            } catch (IndexOutOfBoundsException e) {
+                if (waypoints.size() == 1)
                     waypoints.set(0, stop);
             }
 
@@ -683,6 +778,7 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private boolean avoidDuplicateStop(Stop stop) {
+
         for (Stop sp : waypoints) {
             if ((stop.getGeoCoordinate().getLongitude() == sp.getGeoCoordinate().getLongitude()) && (stop.getGeoCoordinate().getLatitude() == sp.getGeoCoordinate().getLatitude())) {
                 return true;
@@ -707,7 +803,6 @@ public class NavigationView implements Map.OnTransformListener {
 
                 addMarkerToMap(waypoints, false);
 
-
                 if (waypoints.size() > 1) {
                     createRoute.setVisibility(View.VISIBLE);
 
@@ -723,11 +818,7 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void suggesstionsRequest(final Stop stop, String query) {
-       /* if (stop.getAddress() != null && !stop.getAddress().isEmpty())
-            query = stop.getAddress();*/
-
-
-        String url = "https://places.api.here.com/places/v1/autosuggest?X-Map-Viewport=-76.5633,81.2945,102.7335,90.0000&app_code=K2Cpd_EKDzrZb1tz0zdpeQ&app_id=bC4fb9WQfCCZfkxspD4z&q=" + query + "&result_types=address,place,category,chain&size=10";
+        String url = "https://places.api.here.com/places/v1/autosuggest?X-Map-Viewport=83.1559,-60.2904,81.9584,90&app_code=K-M7sT1z7xzHj0RYagnxwQ&app_id=ovQXski53UbdvXr8GTeP&q=" + URLEncoder.encode(query) + "&result_types=address,place,category,chain&size=10";
         StringRequest getAutoSuggestRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -735,6 +826,7 @@ public class NavigationView implements Map.OnTransformListener {
                 if (response != null && !response.isEmpty()) {
                     Gson gson = new Gson();
                     SearchResults results = gson.fromJson(response, SearchResults.class);
+                    //softCloseKeyboard();
                     if (results.getResults() != null && results.getResults().size() > 0) {
                         //we have results
                         if (searchResults != null)
@@ -753,7 +845,6 @@ public class NavigationView implements Map.OnTransformListener {
                             searchResults.add(result);
                         }
 
-
                         searchResults.addAll(results.getResults());
 
                         if (autoSuggestAdapter == null) {
@@ -771,13 +862,16 @@ public class NavigationView implements Map.OnTransformListener {
                         //no search results
                         showToast("No suggestions");
                     }
-
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                showToast("No suggestions");
+                if ((error instanceof NetworkError) || (error instanceof NoConnectionError))
+                    showToast("Please check your network connection.");
+                else if (error.getMessage() != null)
+                    showToast(error.getMessage() + ".");
+
                 suggestLoader.setVisibility(View.GONE);
             }
         });
@@ -833,7 +927,13 @@ public class NavigationView implements Map.OnTransformListener {
             if (stop.getAddress() != null) {
                 query = stop.getAddress();
             }
-            searchView.setText(Jsoup.parse(query).text());
+
+            String q = Jsoup.parse(query).text();
+            searchView.setText(q);
+            searchView.setSelection(searchView.getText().length());
+            searchView.requestFocus();
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
         }
     }
 
@@ -870,19 +970,6 @@ public class NavigationView implements Map.OnTransformListener {
                         positioningManager.removeListener(positionChangedListener);
                     }
                 }
-
-
-
-
-/*                if (waypoints != null && waypoints.size() > 1) {
-                    createRoute();
-                    zoomToFit();
-                } else if (waypoints != null && waypoints.size() == 1) {
-                    map.setCenter(waypoints.get(0).getGeoCoordinate(), Map.Animation.LINEAR);
-                    map.setMapScheme(Map.Scheme.NORMAL_DAY);
-                    map.setZoomLevel(13.2);
-                    positioningManager.removeListener(positionChangedListener);
-                }*/
             }
 
         }
@@ -913,7 +1000,7 @@ public class NavigationView implements Map.OnTransformListener {
                     if (popUpLayout.getVisibility() != View.VISIBLE) {
                         popUpLayout.setVisibility(View.VISIBLE);
 
-                        mapView.setOnClickListener(new View.OnClickListener() {
+                       /* mapView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 map.setMapScheme(Map.Scheme.NORMAL_DAY);
@@ -921,8 +1008,8 @@ public class NavigationView implements Map.OnTransformListener {
                                 satellite.setBackground(null);
                                 terrain.setBackground(null);
                             }
-                        });
-                        satellite.setOnClickListener(new View.OnClickListener() {
+                        });*/
+                        /*satellite.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 map.setMapScheme(Map.Scheme.SATELLITE_DAY);
@@ -942,7 +1029,7 @@ public class NavigationView implements Map.OnTransformListener {
                                 satellite.setBackground(null);
                                 mapView.setBackground(null);
                             }
-                        });
+                        });*/
 
                         trafficConditions.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -1034,7 +1121,7 @@ public class NavigationView implements Map.OnTransformListener {
     private void getCurrentPosition() {
         positioningManager.addListener(new WeakReference<PositioningManager.OnPositionChangedListener>(positionChangedListener));
         if (positioningManager.start(PositioningManager.LocationMethod.GPS_NETWORK_INDOOR)) {
-            showProgress("Getting Current Location...");
+            //showProgress("Getting Current Location...");
             if (positioningManager.hasValidPosition()) {
                 currentGeo = positioningManager.getPosition().getCoordinate();
                 currentPosition = new RouteWaypoint(currentGeo);
@@ -1053,7 +1140,7 @@ public class NavigationView implements Map.OnTransformListener {
                     count++;
             }
 
-            if (count >= 2 && !Navigator.navigationMode)
+            if (count >= 2 && !Navigator.navigationMode && m_route == null && routesLayout.getVisibility() != View.VISIBLE)
                 return true;
         }
         return false;
@@ -1085,12 +1172,18 @@ public class NavigationView implements Map.OnTransformListener {
                     stop.setCurrentLocation(true);
                     currentPositionStop = stop;
 
+                    addWaypoint(currentPositionStop, true);
+
+                    if ((waypoints != null && waypoints.size() == 1)) {
+                        Stop stop = new Stop();
+                        addWaypoint(stop, false);
+                    }
+
                     if (showDirections())
                         createRoute.setVisibility(View.VISIBLE);
                     else
                         createRoute.setVisibility(View.GONE);
 
-                    addWaypoint(currentPositionStop, true);
                     showCurrentPositionMarker();
                     zoomToCurrentPosition(currentPositionStop);
                     positioningManager.removeListener(positionChangedListener);
@@ -1100,6 +1193,7 @@ public class NavigationView implements Map.OnTransformListener {
                     Log.i("NavigationView", "ERROR:RevGeocode Request returned error code:" + errorCode);
 
                 }
+                Navigator.isMapLoaded = true;
                 hideProgress();
             }
         });
@@ -1113,13 +1207,8 @@ public class NavigationView implements Map.OnTransformListener {
         if (waypoints == null)
             waypoints = new ArrayList<>();
 
-        if (isCurrent) {
-            if (waypoints.size() > 0) {
-                waypoints.set(0, stop);
-            } else {
-                waypoints.add(stop);
-            }
-
+        if (isCurrent && waypoints.size() > 0) {
+            waypoints.set(0, stop);
         } else
             waypoints.add(stop);
 
@@ -1158,12 +1247,11 @@ public class NavigationView implements Map.OnTransformListener {
         routeOptions.setRouteType(RouteOptions.Type.FASTEST);
         /* Calculate 3 route. */
         routeOptions.setRouteCount(3);
+
         /* Finally set the route option */
         routePlan.setRouteOptions(routeOptions);
 
-
         /* Define waypoints for the route */
-
         if (waypoints.size() > 0) {
             for (Stop stop : waypoints) {
                 if (stop.getRouteWaypoint() != null)
@@ -1217,15 +1305,31 @@ public class NavigationView implements Map.OnTransformListener {
                                 }
 
                             } else {
-                                Toast.makeText(activity,
+                               /* Toast.makeText(activity,
                                         "Error:route calculation returned error code: " + routingError,
-                                        Toast.LENGTH_LONG).show();
+                                        Toast.LENGTH_LONG).show();*/
+                                showRouteErrorMessage(routingError);
 
                             }
                             hideProgress();
                         }
                     });
         }
+    }
+
+    private void showRouteErrorMessage(RoutingError routingError) {
+        String msg = null;
+
+        if (routingError == RoutingError.GRAPH_DISCONNECTED) {
+            msg = "No route was found.";
+        } else if (routingError == RoutingError.NO_CONNECTIVITY || routingError == RoutingError.NETWORK_COMMUNICATION || routingError == RoutingError.INVALID_OPERATION) {
+            msg = "Please check your network connection.";
+        } else {
+            msg = "Unable to contact our servers . Please try again later.";
+        }
+
+        if (msg != null)
+            showToast(msg);
     }
 
     public FloatingActionButton getCreateRoute() {
@@ -1248,6 +1352,10 @@ public class NavigationView implements Map.OnTransformListener {
         return popUpLayout;
     }
 
+    public LinearLayout getRouteDetailsLayout() {
+        return routeDetailsLayout;
+    }
+
     public RelativeLayout getNavigationBar() {
         return navigationBar;
     }
@@ -1262,12 +1370,19 @@ public class NavigationView implements Map.OnTransformListener {
 
     protected void startNavigation() {
         if (m_route != null) {
+            keepScreenOn();
+            /*
+            * NavigationManager contains a number of listeners which we can use to monitor the
+            * navigation status and getting relevant instructions.
+            */
+            addNavigationListeners();
             start.setVisibility(View.GONE);
             stop.setVisibility(View.VISIBLE);
             routeDetailsLayout.setVisibility(View.GONE);
             schemeSwitch.setVisibility(View.GONE);
             popUpLayout.setVisibility(View.GONE);
             navigationBar.setVisibility(View.VISIBLE);
+            iconLayout.setVisibility(View.VISIBLE);
             toolbar.setVisibility(View.GONE);
 
             if (currentPositionStop != null)
@@ -1293,27 +1408,39 @@ public class NavigationView implements Map.OnTransformListener {
 
     private void updateNavigationBar(int duration, int meters, double covered) {
         if (duration > 0) {
-            eta.setText(timeConversion(duration));
+
+            // Log.d("updateNavigationBar", "duration: " + duration);
+            if (calendar == null)
+                calendar = Calendar.getInstance();
+
+            calendar.setTime(new Date());
+            calendar.add(Calendar.SECOND, duration);
+
+            SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            String formattedDate = df.format(calendar.getTime());
+            //Log.d("updateNavigationBar", "formattedDate: " + formattedDate);
+            eta.setText(formattedDate);
+            //eta.setText(timeConversion(duration));
         }
 
-        if (covered > 0 && covered > 1000)
-            distanceCovered.setText(getDecimalFormatter().format(covered / MILES_CONVERSION) + " miles");
-        else if (covered > 0 && covered <= 1000)
-            distanceCovered.setText((int) covered + " m");
+        double remain = totalDistanceVal - covered;
 
-        if (meters > 0 && meters > 1000)
-            totalDistance.setText(getDecimalFormatter().format(meters / MILES_CONVERSION) + " miles");
-        else if (meters > 0 && meters <= 1000)
-            totalDistance.setText((int) meters + " m");
+        if (remain > 0/* && remain > 1610*/)
+            distanceCovered.setText(getDecimalFormatter().format(remain / MILES_CONVERSION) + " miles");
+       /* else if (remain > 0 && remain <= 1610) {
+            String feet = getDecimalFormatter().format(remain * 3.28084);
+            distanceCovered.setText(feet + " feet");
+        }*/
     }
 
     private void updateNavigationBar(int icon, int meters) {
         setManuverIcon(icon);
-        if (meters > 0 && meters > 1000)
+        if (meters > 0 /*&& meters > 1610*/)
             distanceOfManeuver.setText("In" + getDecimalFormatter().format(meters / MILES_CONVERSION) + " miles");
-        else if (meters > 0 && meters <= 1000)
-            distanceOfManeuver.setText("In" + (int) meters + " m");
-
+      /*  else if (meters > 0 && meters <= 1610) {
+            String feet = getDecimalFormatter().format(meters * 3.28084);
+            distanceOfManeuver.setText("In" + feet + " feet");
+        }*/
     }
 
     private void setManuverIcon(int id) {
@@ -1470,6 +1597,7 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     public void selectRoute(Route route) {
+
         if (route != null) {
             if (mapRoute != null)
                 map.removeMapObject(mapRoute);
@@ -1531,11 +1659,12 @@ public class NavigationView implements Map.OnTransformListener {
             sb.append(minutes).append("m ");
         if (seconds > 0)
             sb.append(seconds).append("s");
-
         return sb.toString();
     }
 
-    protected void stopNavigation(boolean getCurrentLocation) {
+    protected void stopNavigation(boolean getCurrentLocation, boolean secondTime) {
+        dontKeepScreenOn();
+        removeNavigationListeners();
         if (mapMarkers != null) {
             map.removeMapObjects(mapMarkers);
         }
@@ -1543,10 +1672,13 @@ public class NavigationView implements Map.OnTransformListener {
         if (mapRoute != null)
             map.removeMapObject(mapRoute);
         Navigator.navigationMode = false;
-        tts.speak("Navigation ended", TextToSpeech.QUEUE_FLUSH, null);
-        m_navigationManager.stop();
+        if (!secondTime)
+            tts.speak("Navigation ended", TextToSpeech.QUEUE_FLUSH, null);
+        if (m_navigationManager != null)
+            m_navigationManager.stop();
 
         selectedRoute.setM_route(null);
+        m_route = null;
 
         stop.setVisibility(View.GONE);
         start.setVisibility(View.GONE);
@@ -1558,12 +1690,12 @@ public class NavigationView implements Map.OnTransformListener {
         totalDistance.setText("");
         distanceCovered.setText("0");
         navigationBar.setVisibility(View.GONE);
-
+        iconLayout.setVisibility(View.INVISIBLE);
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         layoutParams.addRule(RelativeLayout.BELOW, R.id.relativeLayout2);
         stopsView.setLayoutParams(layoutParams);
         toolbar.setVisibility(View.VISIBLE);
-
+        currentPositionStop = null;
         // if (getCurrentLocation)
         getCurrentPosition();
     }
@@ -1591,6 +1723,18 @@ public class NavigationView implements Map.OnTransformListener {
     private void allowZoomOnMapGesture() {
         if (m_navigationManager != null)
             m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW_NOZOOM);
+    }
+
+    private void setToRoadView() {
+        if (m_navigationManager != null && Navigator.navigationMode) {
+            m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW_NOZOOM);
+            m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW);
+            addNavigationListeners();
+            if (isInitialized) {
+                m_navigationManager.getAudioPlayer().setDelegate(player);
+            }
+            keepScreenOn();
+        }
     }
 
     private void startGuidance(final Route route) {
@@ -1629,6 +1773,7 @@ public class NavigationView implements Map.OnTransformListener {
                         // get new guidance instructions
                         m_navigationManager.addNewInstructionEventListener(new WeakReference<>(instructListener));
 
+
                         // set usage of Nuance TTS engine if specified
                         if (isInitialized) {
                             m_navigationManager.getAudioPlayer().setDelegate(player);
@@ -1656,6 +1801,7 @@ public class NavigationView implements Map.OnTransformListener {
 
             // get new guidance instructions
             m_navigationManager.addNewInstructionEventListener(new WeakReference<>(instructListener));
+
 
             // set usage of Nuance TTS engine if specified
             if (isInitialized) {
@@ -1708,20 +1854,12 @@ public class NavigationView implements Map.OnTransformListener {
          * found in HERE Android SDK API doc
          */
         m_navigationManager.setMapUpdateMode(NavigationManager.MapUpdateMode.ROADVIEW);
+        m_navigationManager.setSpeedWarningEnabled(false);
 
     }
 
     private void addNavigationListeners() {
-
-        try {
-            m_navigationManager.removeNavigationManagerEventListener(m_navigationManagerEventListener);
-            m_navigationManager.removePositionListener(m_positionListener);
-            m_navigationManager.removeNewInstructionEventListener(instructListener);
-            m_navigationManager.removeRerouteListener(rerouteListener);
-            m_navigationManager.removeAudioFeedbackListener(audioFeedbackListener);
-        } catch (Exception e) {
-
-        }
+        removeNavigationListeners();
 
         /*
          * Register a NavigationManagerEventListener to monitor the status change on
@@ -1747,6 +1885,18 @@ public class NavigationView implements Map.OnTransformListener {
         m_navigationManager.addAudioFeedbackListener(
                 new WeakReference<NavigationManager.AudioFeedbackListener>(audioFeedbackListener));
 
+    }
+
+    private void removeNavigationListeners() {
+        try {
+            m_navigationManager.removeNavigationManagerEventListener(m_navigationManagerEventListener);
+            m_navigationManager.removePositionListener(m_positionListener);
+            m_navigationManager.removeNewInstructionEventListener(instructListener);
+            m_navigationManager.removeRerouteListener(rerouteListener);
+            m_navigationManager.removeAudioFeedbackListener(audioFeedbackListener);
+        } catch (Exception e) {
+
+        }
     }
 
 
@@ -1776,14 +1926,20 @@ public class NavigationView implements Map.OnTransformListener {
             // Interpret and present the Maneuver object as it contains
             // turn by turn navigation instructions for the user.
             try {
-                Maneuver maneuver = m_navigationManager.getNextManeuver();
-                maneuver.getIcon().value();
-                maneuver.getDistanceToNextManeuver();
-                maneuver.getAction().name();
-                if (maneuver.getIcon() != null)
-                    updateNavigationBar(maneuver.getIcon().value(), maneuver.getDistanceToNextManeuver());
-                else
-                    updateNavigationBar(-1, maneuver.getDistanceToNextManeuver());
+                final Maneuver maneuver = m_navigationManager.getNextManeuver();
+
+                handler.removeCallbacks(navigationBarUpdateRun);
+
+                navigationBarUpdateRun = new Runnable() {
+                    public void run() {
+                        if (maneuver.getIcon() != null)
+                            updateNavigationBar(maneuver.getIcon().value(), maneuver.getDistanceToNextManeuver());
+                        else
+                            updateNavigationBar(-1, maneuver.getDistanceToNextManeuver());
+                    }
+                };
+                handler.postDelayed(navigationBarUpdateRun, 0);
+
             } catch (NullPointerException e) {
             }
         }
@@ -1868,7 +2024,7 @@ public class NavigationView implements Map.OnTransformListener {
         @Override
         public void onEnded(NavigationManager.NavigationMode navigationMode) {
             //Toast.makeText(activity, navigationMode + " was ended", Toast.LENGTH_SHORT).show();
-            stopNavigation(true);
+            stopNavigation(true, true);
         }
 
         @Override
@@ -1941,6 +2097,10 @@ public class NavigationView implements Map.OnTransformListener {
         }
     };
 
+    public void showProgressBasedOnMapAndPosition() {
+        showProgress("App is getting ready...");
+    }
+
 
     private void showProgress(String message) {
         hideProgress();
@@ -1980,5 +2140,15 @@ public class NavigationView implements Map.OnTransformListener {
         toast = Toast.makeText(activity, message, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.BOTTOM, 0, 0);
         toast.show();
+    }
+
+    public void keepScreenOn() {
+        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+    }
+
+    public void dontKeepScreenOn() {
+        activity.getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
     }
 }

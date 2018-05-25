@@ -9,9 +9,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -20,6 +20,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -55,6 +57,7 @@ public class NavigationActivity extends AppCompatActivity {
     private boolean isTtsEnabled = false;
     private final static int REQUEST_CODE_ASK_PERMISSIONS = 1;
     private final String TAG = "LOCATION MODE";
+    private final String ACTIVITY_TAG = "lifecycle";
     private ArrayList<Stop> points;
     private SelectedRoute selectedRoute;
     private boolean directionsState;
@@ -65,13 +68,21 @@ public class NavigationActivity extends AppCompatActivity {
     private boolean controlsState;
     private boolean schemeSwitchState;
     private boolean popUpLayoutState;
+    private boolean mainViewState;
+    private boolean routeViewState;
     private GpsInfoReceiver gpsInfoReceiver;
+    private Button getStarted;
     private LinearLayout appLayout;
     private RelativeLayout splashLayout;
+    //private Bundle savedState;
+    private Bundle savedInstanceState;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         super.onCreate(savedInstanceState);
+        Log.i(ACTIVITY_TAG, "onCreate: ");
         Fabric.with(this, new Crashlytics());
         gpsInfoReceiver = new GpsInfoReceiver();
 
@@ -79,19 +90,57 @@ public class NavigationActivity extends AppCompatActivity {
 
         appLayout = findViewById(R.id.appLayout);
         splashLayout = findViewById(R.id.splashLayout);
+        getStarted = findViewById(R.id.start_button);
 
         //Restoring the data during Activity Restart
         if (savedInstanceState != null) {
+            //savedState = savedInstanceState.getBundle("savedState");
             restoreDataWhenActivityRestarts(savedInstanceState);
         }
 
         // Initialize Text to Speech Engine
         initTTS();
 
-        startCountDown();
+        showHomeScreen();
     }
 
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+       /* // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+        }*/
+    }
+
+    private void showHomeScreen() {
+
+        getStarted.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                splashLayout.setVisibility(View.GONE);
+                appLayout.setVisibility(View.VISIBLE);
+                if (!Navigator.isMapLoaded) {
+                    if (navigationView != null) {
+                        navigationView.showProgressBasedOnMapAndPosition();
+                    } else {
+                        Log.e(TAG, "showHomeScreen onClick: Inialization error");
+                    }
+                }
+
+            }
+        });
+    }
+
+
     private void startCountDown() {
+        appLayout.setVisibility(View.GONE);
+        splashLayout.setVisibility(View.VISIBLE);
+        getStarted.setVisibility(View.GONE);
         new CountDownTimer(2000, 500) {
 
             public void onTick(long millisUntilFinished) {
@@ -116,7 +165,18 @@ public class NavigationActivity extends AppCompatActivity {
         controlsState = savedInstanceState.getBoolean("controlsState");
         schemeSwitchState = savedInstanceState.getBoolean("schemeSwitchState");
         popUpLayoutState = savedInstanceState.getBoolean("popUpLayoutState");
+        mainViewState = savedInstanceState.getBoolean("mainViewState");
+        routeViewState = savedInstanceState.getBoolean("routeViewState");
+
+        if (mainViewState) {
+            appLayout.setVisibility(View.VISIBLE);
+            splashLayout.setVisibility(View.GONE);
+        } else {
+            appLayout.setVisibility(View.GONE);
+            splashLayout.setVisibility(View.VISIBLE);
+        }
     }
+
 
     private void initTTS() {
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -144,37 +204,51 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        Log.i(ACTIVITY_TAG, "onResume: ");
+
         LocalBroadcastManager.getInstance(this).registerReceiver(gpsInfoReceiver, new IntentFilter("GPS_INFO_UPDATE_ALERT"));
+        if (navigationView != null && Navigator.navigationMode)
+            navigationView.keepScreenOn();
     }
 
     @Override
     public void onPause() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(gpsInfoReceiver);
+        Log.i(ACTIVITY_TAG, "onPause: ");
+
         super.onPause();
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        startCountDown();
-    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if(navigationView != null){
+        if (navigationView != null) {
             if (navigationView.getWaypoints() != null)
                 outState.putParcelableArrayList("waypoints", navigationView.getWaypoints());
             if (navigationView.getSelectedRoute() != null)
                 outState.putParcelable("route", navigationView.getSelectedRoute());
-            outState.putBoolean("directionsState", navigationView.getCreateRoute().getVisibility() == View.VISIBLE);
-            outState.putBoolean("startState", navigationView.getStart().getVisibility() == View.VISIBLE);
-            outState.putBoolean("stopState", navigationView.getStop().getVisibility() == View.VISIBLE);
-            outState.putBoolean("toolbarState", navigationView.getToolbar().getVisibility() == View.VISIBLE);
-            outState.putBoolean("navigationBarState", navigationView.getNavigationBar().getVisibility() == View.VISIBLE);
-            outState.putBoolean("controlsState", navigationView.getControls().getVisibility() == View.VISIBLE);
-            outState.putBoolean("schemeSwitchState", navigationView.getSchemeSwitch().getVisibility() == View.VISIBLE);
-            outState.putBoolean("popUpLayoutState", navigationView.getPopUpLayout().getVisibility() == View.VISIBLE);
+            if (navigationView.getCreateRoute() != null)
+                outState.putBoolean("directionsState", navigationView.getCreateRoute().getVisibility() == View.VISIBLE);
+            if (navigationView.getStart() != null)
+                outState.putBoolean("startState", navigationView.getStart().getVisibility() == View.VISIBLE);
+            if (navigationView.getStop() != null)
+                outState.putBoolean("stopState", navigationView.getStop().getVisibility() == View.VISIBLE);
+            if (navigationView.getToolbar() != null)
+                outState.putBoolean("toolbarState", navigationView.getToolbar().getVisibility() == View.VISIBLE);
+            if (navigationView.getNavigationBar() != null)
+                outState.putBoolean("navigationBarState", navigationView.getNavigationBar().getVisibility() == View.VISIBLE);
+            if (navigationView.getControls() != null)
+                outState.putBoolean("controlsState", navigationView.getControls().getVisibility() == View.VISIBLE);
+            if (navigationView.getSchemeSwitch() != null)
+                outState.putBoolean("schemeSwitchState", navigationView.getSchemeSwitch().getVisibility() == View.VISIBLE);
+            if (navigationView.getPopUpLayout() != null)
+                outState.putBoolean("popUpLayoutState", navigationView.getPopUpLayout().getVisibility() == View.VISIBLE);
+            if (appLayout != null)
+                outState.putBoolean("mainViewState", appLayout.getVisibility() == View.VISIBLE);
+            if (navigationView.getRouteDetailsLayout() != null)
+                outState.putBoolean("routeViewState", navigationView.getRouteDetailsLayout().getVisibility() == View.VISIBLE);
+            //outState.putBundle("savedState", savedState);
         }
     }
 
@@ -192,8 +266,7 @@ public class NavigationActivity extends AppCompatActivity {
         requiredSDKPermissions.add(Manifest.permission.ACCESS_WIFI_STATE);
         requiredSDKPermissions.add(Manifest.permission.ACCESS_NETWORK_STATE);
 
-        ActivityCompat.requestPermissions(this, requiredSDKPermissions.toArray(new String[requiredSDKPermissions.size()]),
-                REQUEST_CODE_ASK_PERMISSIONS);
+        ActivityCompat.requestPermissions(this, requiredSDKPermissions.toArray(new String[requiredSDKPermissions.size()]), REQUEST_CODE_ASK_PERMISSIONS);
     }
 
     @Override
@@ -311,29 +384,35 @@ public class NavigationActivity extends AppCompatActivity {
         }
     }
 
+    public Activity getActivityInstance() {
+        return NavigationActivity.this;
+    }
+
     @Override
     public void onBackPressed() {
         if (Navigator.navigationMode)
-            showLogoutWarning(false);
+            showLogoutWarning(false, "Are you sure you want to exit the current navigation?", false);
         else
-            super.onBackPressed();
+            showLogoutWarning(false, "Are you sure you want to exit the application?", true);
     }
 
-    public void showLogoutWarning(final boolean get) {
+
+    public void showLogoutWarning(final boolean get, String msg, final boolean allowExit) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder
                 .setTitle("Confirm")
-                .setMessage("Are you sure you want to exit the current navigation?.")
+                .setMessage(msg)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 
                         if (Navigator.navigationMode)
-                            navigationView.stopNavigation(get);
+                            navigationView.stopNavigation(get, false);
 
                         if (dialog != null)
                             dialog.cancel();
 
-
+                        if (allowExit)
+                            finish();
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -378,6 +457,10 @@ public class NavigationActivity extends AppCompatActivity {
         return popUpLayoutState;
     }
 
+    public boolean isRouteDetailsLayoutState() {
+        return routeViewState;
+    }
+
     /**
      * Update Ui regarding the Location Status
      */
@@ -389,7 +472,7 @@ public class NavigationActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
 
             try {
-                if(navigationView == null)
+                if (navigationView == null)
                     initMap();
                 else if (intent.getBooleanExtra("isOn", false))
                     navigationView.getCurrentTrack();
@@ -399,5 +482,14 @@ public class NavigationActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (tts != null)
+            tts.shutdown();
+
+        Log.i(ACTIVITY_TAG, "onDestroy: ");
+        super.onDestroy();
     }
 }

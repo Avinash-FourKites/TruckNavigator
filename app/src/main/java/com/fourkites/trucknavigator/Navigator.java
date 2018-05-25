@@ -15,6 +15,9 @@ public class Navigator extends Application {
     public static boolean simulate = false;
     public static boolean navigationMode = false;
     public static long simulationSpeed = 0;
+    public static boolean isMapLoaded = false;
+   /* public static boolean isCurrentLocationAvailable = false;
+    public static boolean isSplashActive = true;*/
 
     @Override
     public void onCreate() {

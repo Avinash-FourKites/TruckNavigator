@@ -16,8 +16,8 @@ android {
         applicationId "com.fourkites.trucknavigator"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -30,6 +30,11 @@ android {
 
     defaultConfig {
         multiDexEnabled true
+    }
+
+    dexOptions {
+        javaMaxHeapSize "2048M"
+        preDexLibraries = false
     }
 
 }

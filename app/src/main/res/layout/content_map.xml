@@ -1,111 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.fourkites.trucknavigator.NavigationActivity"
-    tools:showIn="@layout/activity_main">
-
-    <RelativeLayout
-        android:id="@+id/navigationBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@color/colorPrimaryDark"
-        android:padding="5dp"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Distance : "
-                    android:textColor="@android:color/white" />
-
-                <TextView
-                    android:id="@+id/distanceCovered"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textColor="@android:color/white" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" / "
-                    android:textColor="@android:color/white" />
-
-                <TextView
-                    android:id="@+id/totalDistance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textColor="@android:color/white" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="ETA: "
-                    android:textColor="@android:color/white" />
-
-                <TextView
-                    android:id="@+id/eta"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=""
-                    android:textColor="@android:color/white" />
-            </LinearLayout>
-
-
-        </LinearLayout>
-
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:orientation="vertical">
-
-            <ImageView
-                android:id="@+id/manuverIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_margin="5dp" />
-
-            <TextView
-                android:id="@+id/distanceOfManeuver"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/manuverIcon"
-                android:layout_margin="2dp"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:visibility="gone" />
-
-        </RelativeLayout>
-
-    </RelativeLayout>
+    tools:context="com.fourkites.trucknavigator.NavigationActivity">
 
     <RelativeLayout
         android:id="@+id/parent"
@@ -115,7 +15,12 @@
         <FrameLayout
             android:id="@+id/mapFragmentContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true">
+
+        </FrameLayout>
 
         <LinearLayout
             android:id="@+id/routesLayout"
@@ -144,7 +49,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:text="Routes"
+                    android:text="Route Options"
                     android:textAppearance="@style/TextAppearance.AppCompat.Headline"
                     android:textColor="@android:color/white" />
             </RelativeLayout>
@@ -162,10 +67,10 @@
             android:id="@+id/routeDetailsLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_alignParentBottom="true"
             android:background="@color/colorPrimary"
             android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:padding="5dp"
             android:visibility="gone">
 
@@ -175,29 +80,30 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_margin="5dp"
-                app:backgroundTint="@color/fourkites_green"
                 android:visibility="visible"
+                app:backgroundTint="@color/fourkites_green"
                 app:srcCompat="@drawable/start_navigation" />
 
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:layout_centerInParent="true"
+                android:orientation="vertical">
 
-                android:layout_centerInParent="true">
                 <TextView
                     android:id="@+id/selectedRouteEta"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/white"
-                    android:text="Estimated Time : "/>
+                    android:text="Estimated Time : "
+                    android:textColor="@android:color/white" />
+
                 <TextView
                     android:id="@+id/selectedRouteDistance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/white"
-                    android:text="Total Distance : "/>
+                    android:text="Total Distance : "
+                    android:textColor="@android:color/white" />
             </LinearLayout>
 
 
@@ -242,7 +148,7 @@
                         android:textColor="@android:color/white"
                         android:textSize="11sp" />
 
-                    <TextView
+                    <!--<TextView
                         android:id="@+id/satellite"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -259,24 +165,24 @@
                         android:text="Satellite"
                         android:textColor="@android:color/white"
                         android:textSize="11sp" />
+-->
+                    <!-- <TextView
+                         android:id="@+id/terrain"
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:layout_marginBottom="2dp"
+                         android:layout_marginEnd="2dp"
+                         android:layout_marginLeft="2dp"
+                         android:layout_marginRight="2dp"
+                         android:layout_marginStart="2dp"
+                         android:background="@null"
+                         android:clickable="true"
+                         android:gravity="center"
+                         android:padding="6dp"
 
-                    <TextView
-                        android:id="@+id/terrain"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="2dp"
-                        android:layout_marginEnd="2dp"
-                        android:layout_marginLeft="2dp"
-                        android:layout_marginRight="2dp"
-                        android:layout_marginStart="2dp"
-                        android:background="@null"
-                        android:clickable="true"
-                        android:gravity="center"
-                        android:padding="6dp"
-
-                        android:text="Terrain"
-                        android:textColor="@android:color/white"
-                        android:textSize="11sp" />
+                         android:text="Terrain"
+                         android:textColor="@android:color/white"
+                         android:textSize="11sp" />-->
 
                 </LinearLayout>
 
@@ -376,9 +282,9 @@
             android:id="@+id/controls"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
             android:layout_above="@+id/routeDetailsLayout"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
             android:orientation="vertical">
 
             <ImageView
@@ -401,15 +307,137 @@
                 android:background="@drawable/map_layers_icon" />
         </LinearLayout>
 
+        <RelativeLayout
+            android:id="@+id/navigationBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="10dp"
+            android:layout_toEndOf="@+id/routesLayout"
+            android:layout_toRightOf="@+id/routesLayout"
+            android:background="@android:color/transparent"
+            android:padding="5dp"
+            android:visibility="gone">
+
+            <RelativeLayout
+                android:id="@+id/iconLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_centerVertical="true"
+                android:background="@color/colorPrimaryDark"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/manuverIcon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_margin="5dp"
+                    android:background="@drawable/maneuver_icon_43" />
+
+                <TextView
+                    android:id="@+id/distanceOfManeuver"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/manuverIcon"
+                    android:layout_margin="2dp"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_toEndOf="@+id/iconLayout"
+                android:layout_toRightOf="@+id/iconLayout"
+                android:background="@color/colorPrimaryDark"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Remaining Distance : "
+                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/distanceCovered"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="3"
+                        android:text="0"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" / "
+                        android:textColor="@android:color/white"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/totalDistance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="3"
+                        android:text="0"
+                        android:textColor="@android:color/white"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Will reach by : "
+                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/eta"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="3"
+                        android:text=""
+                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/stopNavigation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
+            android:layout_alignParentBottom="true"
             android:layout_margin="15dp"
-            app:backgroundTint="@color/fourkites_red"
             android:clickable="true"
             android:visibility="gone"
+            app:backgroundTint="@color/fourkites_red"
             app:srcCompat="@drawable/navigation_close" />
 
         <android.support.design.widget.FloatingActionButton
@@ -419,21 +447,10 @@
             android:layout_alignParentBottom="true"
             android:layout_gravity="right"
             android:layout_margin="5dp"
-            app:backgroundTint="@color/carrier_link_blue"
             android:visibility="gone"
+            app:backgroundTint="@color/directions_blue"
             app:srcCompat="@drawable/directions_white" />
-
-       <!-- <android.support.design.widget.FloatingActionButton
-            android:id="@+id/startNavigation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_gravity="right"
-            android:layout_margin="5dp"
-            android:backgroundTint="@color/fourkites_green"
-            android:visibility="gone"
-            app:srcCompat="@drawable/start_navigation" />-->
 
     </RelativeLayout>
 
-</LinearLayout>
+</RelativeLayout>
