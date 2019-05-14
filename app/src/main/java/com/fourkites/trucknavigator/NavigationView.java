@@ -71,6 +71,7 @@ import com.here.android.mpa.common.ViewObject;
 import com.here.android.mpa.guidance.AudioPlayerDelegate;
 import com.here.android.mpa.guidance.NavigationManager;
 import com.here.android.mpa.guidance.VoiceCatalog;
+import com.here.android.mpa.guidance.VoiceGuidanceOptions;
 import com.here.android.mpa.guidance.VoicePackage;
 import com.here.android.mpa.mapping.Map;
 import com.here.android.mpa.mapping.MapFragment;
@@ -463,7 +464,7 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void initializeMapFragment() {
-          /* Initialize the MapFragment, results will be given via the called back. */
+        /* Initialize the MapFragment, results will be given via the called back. */
         if (mapFragment != null) {
             final ApplicationContext context = new ApplicationContext(activity);
             mapFragment.init(context, new OnEngineInitListener() {
@@ -527,7 +528,8 @@ public class NavigationView implements Map.OnTransformListener {
                                     allowZoomOnMapGesture();
                                     for (ViewObject viewObject : list) {
                                         if (viewObject instanceof MapMarker) {
-                                            ((MapMarker) viewObject).showInfoBubble();
+                                            //todo 1
+                                            //((MapMarker) viewObject).showInfoBubble();
                                             break;
                                         }
                                     }
@@ -591,7 +593,7 @@ public class NavigationView implements Map.OnTransformListener {
                                     allowZoomOnMapGesture();
                                     return false;
                                 }
-                            });
+                            }, Integer.MIN_VALUE, true);
 
                             positioningManager = PositioningManager.getInstance();
                             if (waypoints != null && waypoints.size() > 0 && waypoints.get(0).getGeoCoordinate() != null)
@@ -624,7 +626,7 @@ public class NavigationView implements Map.OnTransformListener {
     private void addingMapSettings() {
       /*  EnumSet<Map.PedestrianFeature> set = EnumSet.of(Map.PedestrianFeature.TUNNEL, Map.PedestrianFeature.BRIDGE, Map.PedestrianFeature.CROSSWALK);
         map.setPedestrianFeaturesVisible(set);*/
-        map.setStreetLevelCoverageVisible(true);
+        //map.setStreetLevelCoverageVisible(true);
         map.setProjectionMode(Map.Projection.MERCATOR);  // globe projection
         map.setExtrudedBuildingsVisible(false);  // enable 3D building footprints
         map.setLandmarksVisible(false);  // 3D Landmarks visible
@@ -818,7 +820,9 @@ public class NavigationView implements Map.OnTransformListener {
     }
 
     private void suggesstionsRequest(final Stop stop, String query) {
-        String url = "https://places.api.here.com/places/v1/autosuggest?X-Map-Viewport=83.1559,-60.2904,81.9584,90&app_code=K-M7sT1z7xzHj0RYagnxwQ&app_id=ovQXski53UbdvXr8GTeP&q=" + URLEncoder.encode(query) + "&result_types=address,place,category,chain&size=10";
+        String appId = "eBWPXwy5NTgs66Q56LPO";
+        String appCode = "sRJPc2zq91rLlD61rf2SkQ";
+        String url = "https://places.api.here.com/places/v1/autosuggest?X-Map-Viewport=83.1559,-60.2904,81.9584,90&app_code=" + appCode + "&app_id=" + appId + "&q=" + URLEncoder.encode(query) + "&result_types=address,place,category,chain&size=10";
         StringRequest getAutoSuggestRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -963,7 +967,8 @@ public class NavigationView implements Map.OnTransformListener {
                         }
 
                         map.addMapObject(mapMarker);
-                        mapMarker.showInfoBubble();
+                        //todo
+                        //mapMarker.showInfoBubble();
                         mapMarker.setDraggable(false);
                         mapMarkers.add(mapMarker);
                         stop.setMapMarker(mapMarker);
@@ -1258,19 +1263,19 @@ public class NavigationView implements Map.OnTransformListener {
                     routePlan.addWaypoint(stop.getRouteWaypoint());
             }
 
-        /* Trigger the route calculation,results will be called back via the listener */
+            /* Trigger the route calculation,results will be called back via the listener */
             coreRouter.calculateRoute(routePlan,
                     new Router.Listener<List<RouteResult>, RoutingError>() {
 
                         @Override
                         public void onProgress(int i) {
-                        /* The calculation progress can be retrieved in this callback. */
+                            /* The calculation progress can be retrieved in this callback. */
                         }
 
                         @Override
                         public void onCalculateRouteFinished(List<RouteResult> routeResults,
                                                              RoutingError routingError) {
-                        /* Calculation is done.Let's handle the result */
+                            /* Calculation is done.Let's handle the result */
                             if (routingError == RoutingError.NONE) {
 
                                 if (routes != null)
@@ -1372,9 +1377,9 @@ public class NavigationView implements Map.OnTransformListener {
         if (m_route != null) {
             keepScreenOn();
             /*
-            * NavigationManager contains a number of listeners which we can use to monitor the
-            * navigation status and getting relevant instructions.
-            */
+             * NavigationManager contains a number of listeners which we can use to monitor the
+             * navigation status and getting relevant instructions.
+             */
             addNavigationListeners();
             start.setVisibility(View.GONE);
             stop.setVisibility(View.VISIBLE);
@@ -1762,7 +1767,12 @@ public class NavigationView implements Map.OnTransformListener {
                 public void onDownloadDone(VoiceCatalog.Error error) {
                     if (error == VoiceCatalog.Error.NONE) {
                         // catalog download successful
-                        m_navigationManager.setVoiceSkin(voiceCatalog.getLocalVoiceSkin(voiceSkinId));
+
+
+                        VoiceGuidanceOptions voiceGuidanceOptions = m_navigationManager.getVoiceGuidanceOptions();
+
+                        // set the voice skin for use by navigation manager
+                        voiceGuidanceOptions.setVoiceSkin(voiceCatalog.getLocalVoiceSkin(voiceSkinId));
                         // better visuals when switching to special car navigation map scheme
                         map.setTilt(45);
 
@@ -1776,6 +1786,7 @@ public class NavigationView implements Map.OnTransformListener {
 
                         // set usage of Nuance TTS engine if specified
                         if (isInitialized) {
+                            m_navigationManager.getAudioPlayer().setTtsSpeechRate(1f);
                             m_navigationManager.getAudioPlayer().setDelegate(player);
                         } else {
                             // passing null delete any custom audio player that was set earlier
@@ -1791,7 +1802,13 @@ public class NavigationView implements Map.OnTransformListener {
                 }
             });
         } else {
-            m_navigationManager.setVoiceSkin(voiceCatalog.getLocalVoiceSkin(voiceSkinId));
+
+            VoiceGuidanceOptions voiceGuidanceOptions = m_navigationManager.getVoiceGuidanceOptions();
+
+            // set the voice skin for use by navigation manager
+            voiceGuidanceOptions.setVoiceSkin(voiceCatalog.getLocalVoiceSkin(voiceSkinId));
+
+            //m_navigationManager.setVoiceSkin(voiceCatalog.getLocalVoiceSkin(voiceSkinId));
             // better visuals when switching to special car navigation map scheme
             map.setTilt(45);
 
@@ -1805,6 +1822,7 @@ public class NavigationView implements Map.OnTransformListener {
 
             // set usage of Nuance TTS engine if specified
             if (isInitialized) {
+                m_navigationManager.getAudioPlayer().setTtsSpeechRate(1f);
                 m_navigationManager.getAudioPlayer().setDelegate(player);
             } else {
                 // passing null delete any custom audio player that was set earlier
@@ -1954,9 +1972,9 @@ public class NavigationView implements Map.OnTransformListener {
         }
 
         @Override
-        public void onRerouteEnd(Route route) {
-            super.onRerouteEnd(route);
-
+        public void onRerouteEnd(RouteResult routeResult) {
+            super.onRerouteEnd(routeResult);
+            Route route = routeResult.getRoute();
             if (mapRoute != null) {
                 map.removeMapObject(mapRoute);
             }

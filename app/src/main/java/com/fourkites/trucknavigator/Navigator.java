@@ -12,7 +12,7 @@ import io.fabric.sdk.android.Fabric;
 
 public class Navigator extends Application {
 
-    public static boolean simulate = false;
+    public static boolean simulate = true;
     public static boolean navigationMode = false;
     public static long simulationSpeed = 0;
     public static boolean isMapLoaded = false;
